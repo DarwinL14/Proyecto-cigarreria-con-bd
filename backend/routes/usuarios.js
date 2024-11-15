@@ -41,7 +41,6 @@ router.post('/login', async (req, res) => {
             return res.status(404).json({ message: "Correo o contraseña incorrectos." });
         }
 
-
         // Verificar que la contraseña coincida y que el usuario esté activo
         if (usuario.contrasena === contrasena && usuario.estado === 'activo') {
             return res.status(200).json(usuario); // Devuelve los datos del usuario
@@ -53,6 +52,32 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         console.error('Error en el inicio de sesión', error);
         res.status(500).json({ message: "Error en el servidor. Intenta nuevamente." });
+    }
+});
+
+router.post('/empleados', async (req, res) => {
+    try {
+        const { nombre, contrasena, nombreUsuario, correo, telefono, direccion, tipoDocumento, numeroDocumento, estado, rol } = req.body;
+
+
+
+        const nuevoEmpleado = new Usuario({
+            nombre,
+            contrasena, 
+            nombreUsuario,
+            correo,
+            telefono,
+            direccion,
+            tipoDocumento,
+            numeroDocumento,
+            estado,
+            rol
+        });
+
+        await nuevoEmpleado.save();
+        res.status(201).json({ message: "Empleado registrado con éxito", empleado: nuevoEmpleado });
+    } catch (error) {
+        res.status(500).json({ message: "Error al registrar el empleado", error });
     }
 });
 
@@ -79,7 +104,6 @@ router.put('/:id', async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
-
 
 
 module.exports = router;
