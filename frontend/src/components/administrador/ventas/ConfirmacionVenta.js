@@ -41,7 +41,7 @@ const ConfirmacionVenta = () => {
             // Actualizar la cantidad de cada producto en el inventario
             await Promise.all(productosSeleccionados.map(async (producto) => {
                 // Obtener los datos actuales del producto
-                const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto.id}`);
+                const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto._id}`);
 
                 // Calcular la nueva cantidad
                 const nuevaCantidad = productoActual.cantidad - producto.cantidad;
@@ -51,7 +51,7 @@ const ConfirmacionVenta = () => {
                     throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
                 }
 
-                await axios.put(`http://localhost:5000/productos/${producto.id}`, {
+                await axios.put(`http://localhost:5000/productos/${producto._id}`, {
                     ...productoActual,  // Mantener los otros campos del producto
                     cantidad: nuevaCantidad  // Disminuir la cantidad
                 });

@@ -23,6 +23,9 @@ app.use('/proveedores', proveedorRoutes);
 const productoRoutes = require('./routes/productos');
 app.use('/productos', productoRoutes);
 
+const ventaRoutes = require('./routes/ventas');
+app.use('/ventas', ventaRoutes);
+
 // Configuración del puerto
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

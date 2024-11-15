@@ -15,7 +15,7 @@ const GestionProveedores = () => {
 
     const fetchProveedores = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:5000/proveedores');
+            const response = await axios.get('http://localhost:5000/proveedores/consulta');
             setProveedores(response.data);
         } catch (error) {
             console.error('Error al obtener los proveedores', error);
