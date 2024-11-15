@@ -41,14 +41,9 @@ router.post('/login', async (req, res) => {
             return res.status(404).json({ message: "Correo o contraseña incorrectos." });
         }
 
-        // Encriptar la contraseña recibida para compararla con la almacenada
-        const contrasenaEncriptada = contrasena
-            .split('')
-            .map((char) => String.fromCharCode(char.charCodeAt(0) + 3))
-            .join('');
 
         // Verificar que la contraseña coincida y que el usuario esté activo
-        if (usuario.contrasena === contrasenaEncriptada && usuario.estado === 'activo') {
+        if (usuario.contrasena === contrasena && usuario.estado === 'activo') {
             return res.status(200).json(usuario); // Devuelve los datos del usuario
         } else if (usuario.estado !== 'activo') {
             return res.status(403).json({ message: "Tu cuenta no está activa. Contacta con soporte." });
