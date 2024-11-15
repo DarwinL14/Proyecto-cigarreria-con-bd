@@ -29,7 +29,7 @@ const ProductosInactivos = () => {
     // Obtener los productos de la API
     const fetchProductos = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/productos');
+            const response = await axios.get('http://localhost:5000/productos/consulta');
             setProductos(response.data);
         } catch (error) {
             console.error('Error al obtener los productos', error);
@@ -63,7 +63,7 @@ const ProductosInactivos = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.put(`http://localhost:5000/productos/${producto.id}`, { ...producto, estado: 'activo' });
+                    await axios.put(`http://localhost:5000/productos/${producto._id}`, { ...producto, estado: 'activo' });
                     fetchProductos();
                 } catch (error) {
                     console.error('Error al reactivar el producto', error);

@@ -38,7 +38,7 @@ router.get('/consulta', async (req, res) => {
 });
 
 // Actualizar estado del producto
-router.patch('/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const producto = await Producto.findById(req.params.id);
         if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });

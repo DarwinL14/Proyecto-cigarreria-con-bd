@@ -34,7 +34,7 @@ router.get('/consulta', async (req, res) => {
 });
 
 // Actualizar estado del proveedor
-router.patch('/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const proveedor = await Proveedor.findById(req.params.id);
         if (!proveedor) return res.status(404).json({ message: 'Proveedor no encontrado' });
