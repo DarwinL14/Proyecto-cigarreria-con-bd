@@ -17,6 +17,9 @@ mongoose.connect(process.env.MONGO_URI)
 const userRoutes = require('./routes/usuarios');
 app.use('/usuarios', userRoutes);
 
+const proveedorRoutes = require('./routes/proveedores');
+app.use('/proveedores', proveedorRoutes);
+
 // Configuración del puerto
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
