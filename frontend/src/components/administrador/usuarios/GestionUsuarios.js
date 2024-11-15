@@ -16,7 +16,7 @@ const GestionUsuarios = () => {
     // Llamada a la API para obtener los usuarios desde MongoDB
     const fetchUsuarios = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:5000/usuarios');
+            const response = await axios.get('http://localhost:5000/usuarios/consulta');
             setUsuarios(response.data);
         } catch (error) {
             console.error('Error al obtener los usuarios', error);

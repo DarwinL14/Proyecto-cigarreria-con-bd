@@ -82,7 +82,7 @@ router.post('/empleados', async (req, res) => {
 });
 
 // Obtener todos los usuarios
-router.get('/', async (req, res) => {
+router.get('/consulta', async (req, res) => {
     try {
         const usuarios = await Usuario.find();
         res.json(usuarios);
