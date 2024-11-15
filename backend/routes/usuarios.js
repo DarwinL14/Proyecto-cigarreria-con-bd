@@ -30,29 +30,36 @@ router.post('/', async (req, res) => {
     }
 });
 
-
-// Ruta para iniciar sesión
+// Ruta de autenticación de usuario
 router.post('/login', async (req, res) => {
     const { correo, contrasena } = req.body;
 
     try {
-        // Buscar al usuario por correo
+        // Buscar usuario por correo
         const usuario = await Usuario.findOne({ correo });
-
         if (!usuario) {
-            return res.status(401).json({ message: "Usuario no encontrado" });
+            return res.status(404).json({ message: "Correo o contraseña incorrectos." });
         }
 
-        // Aquí no es necesario encriptar la contraseña, solo compararla directamente
-        if (usuario.contrasena !== contrasena) {
-            return res.status(401).json({ message: "Credenciales incorrectas" });
-        }
+        // Encriptar la contraseña recibida para compararla con la almacenada
+        const contrasenaEncriptada = contrasena
+            .split('')
+            .map((char) => String.fromCharCode(char.charCodeAt(0) + 3))
+            .join('');
 
-        // Si las contraseñas coinciden, devolver los datos del usuario
-        res.json({ message: "Inicio de sesión exitoso", usuario });
+        // Verificar que la contraseña coincida y que el usuario esté activo
+        if (usuario.contrasena === contrasenaEncriptada && usuario.estado === 'activo') {
+            return res.status(200).json(usuario); // Devuelve los datos del usuario
+        } else if (usuario.estado !== 'activo') {
+            return res.status(403).json({ message: "Tu cuenta no está activa. Contacta con soporte." });
+        } else {
+            return res.status(401).json({ message: "Correo o contraseña incorrectos." });
+        }
     } catch (error) {
-        res.status(500).json({ message: "Error al iniciar sesión", error });
+        console.error('Error en el inicio de sesión', error);
+        res.status(500).json({ message: "Error en el servidor. Intenta nuevamente." });
     }
 });
+
 
 module.exports = router;
