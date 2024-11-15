@@ -68,7 +68,7 @@ const RegistroEmpleado = () => {
                 };
 
                 // Enviar los datos al servidor
-                await axios.post('http://localhost:5000/usuarios', datosAEnviar);
+                await axios.post('http://localhost:5000/usuarios/empleados', datosAEnviar);
 
                 // Enviar correo con EmailJS
                 await emailjs.send('service_podqncg', 'template_sj29uf7', {

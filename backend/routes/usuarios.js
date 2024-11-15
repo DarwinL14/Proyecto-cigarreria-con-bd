@@ -56,5 +56,31 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/empleados', async (req, res) => {
+    try {
+        const { nombre, contrasena, nombreUsuario, correo, telefono, direccion, tipoDocumento, numeroDocumento, estado, rol } = req.body;
+
+
+
+        const nuevoEmpleado = new Usuario({
+            nombre,
+            contrasena, 
+            nombreUsuario,
+            correo,
+            telefono,
+            direccion,
+            tipoDocumento,
+            numeroDocumento,
+            estado,
+            rol
+        });
+
+        await nuevoEmpleado.save();
+        res.status(201).json({ message: "Empleado registrado con éxito", empleado: nuevoEmpleado });
+    } catch (error) {
+        res.status(500).json({ message: "Error al registrar el empleado", error });
+    }
+});
+
 
 module.exports = router;
