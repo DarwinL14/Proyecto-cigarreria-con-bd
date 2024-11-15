@@ -20,6 +20,9 @@ app.use('/usuarios', userRoutes);
 const proveedorRoutes = require('./routes/proveedores');
 app.use('/proveedores', proveedorRoutes);
 
+const productoRoutes = require('./routes/productos');
+app.use('/productos', productoRoutes);
+
 // Configuración del puerto
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
