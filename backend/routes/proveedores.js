@@ -23,4 +23,28 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Obtener todos los proveedores
+router.get('/consulta', async (req, res) => {
+    try {
+        const proveedores = await Proveedor.find();
+        res.json(proveedores);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener los proveedores' });
+    }
+});
+
+// Actualizar estado del proveedor
+router.patch('/:id', async (req, res) => {
+    try {
+        const proveedor = await Proveedor.findById(req.params.id);
+        if (!proveedor) return res.status(404).json({ message: 'Proveedor no encontrado' });
+
+        proveedor.estado = req.body.estado;
+        await proveedor.save();
+        res.json(proveedor);
+    } catch (error) {
+        res.status(400).json({ message: 'Error al actualizar el proveedor' });
+    }
+});
+
 module.exports = router;

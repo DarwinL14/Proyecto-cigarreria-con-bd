@@ -15,7 +15,7 @@ const GestionProveedores = () => {
 
     const fetchProveedores = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:5000/proveedores');
+            const response = await axios.get('http://localhost:5000/proveedores/consulta');
             setProveedores(response.data);
         } catch (error) {
             console.error('Error al obtener los proveedores', error);
@@ -135,9 +135,7 @@ const GestionProveedores = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.patch(`http://localhost:5000/proveedores/${proveedor.id}`, {
-                        estado: 'inactivo'
-                    });
+                    await axios.patch(`http://localhost:5000/proveedores/${proveedor.id}`, {...proveedor,   estado: 'inactivo'});
                     fetchProveedores();
                     Swal.fire('Inactivado', 'El proveedor ha sido inactivado.', 'success');
                 } catch (error) {
