@@ -10,8 +10,8 @@ const UsuarioSchema = new mongoose.Schema({
   direccion: { type: String, required: true },
   tipoDocumento: { type: String, required: true },
   numeroDocumento: { type: String, required: true },
-  estado: { type: String, default: 'activo' },
-  rol: { type: String, default: 'cliente' },
+  estado: { type: String, required: true, enum: ['activo', 'inactivo'], default: 'activo' },
+  rol: { type: String, required: true, enum: ['cliente', 'cajero', 'administrador', 'domiciliario'] },
 });
 
 module.exports = mongoose.model('Usuario', UsuarioSchema);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { useTable, useFilters, usePagination } from 'react-table';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaEye, FaEyeSlash, FaArchive, FaUndo} from 'react-icons/fa';
+import { FaPlus, FaEye, FaEyeSlash, FaArchive, FaUndo } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 
 const GestionUsuarios = () => {
@@ -13,6 +13,7 @@ const GestionUsuarios = () => {
     const [showInactivos, setShowInactivos] = useState(false);
     const navigate = useNavigate();
 
+    // Llamada a la API para obtener los usuarios desde MongoDB
     const fetchUsuarios = useCallback(async () => {
         try {
             const response = await axios.get('http://localhost:5000/usuarios');
@@ -29,7 +30,7 @@ const GestionUsuarios = () => {
 
     useEffect(() => {
         const filtered = usuarios
-            .filter(usuario => usuario.rol !== 'administrador') // Excluir usuarios administradores
+            .filter(usuario => usuario.rol !== 'administrador') // Excluir administradores
             .filter(usuario => {
                 return showInactivos ? usuario.estado === 'inactivo' : usuario.estado === 'activo';
             })
@@ -40,7 +41,6 @@ const GestionUsuarios = () => {
             );
         setFilteredUsuarios(filtered);
     }, [filterInput, usuarios, showInactivos]);
-    
 
     const handleFilterChange = e => {
         setFilterInput(e.target.value || '');
@@ -60,7 +60,7 @@ const GestionUsuarios = () => {
             });
 
             if (result.isConfirmed) {
-                await axios.put(`http://localhost:5000/usuarios/${usuario.id}`, { ...usuario, estado: 'inactivo' });
+                await axios.put(`http://localhost:5000/usuarios/${usuario._id}`, { ...usuario, estado: 'inactivo' });
                 fetchUsuarios();
                 Swal.fire({
                     icon: 'success',
@@ -93,9 +93,9 @@ const GestionUsuarios = () => {
                 confirmButtonText: 'Sí, reactivar',
                 cancelButtonText: 'Cancelar'
             });
-    
+
             if (result.isConfirmed) {
-                await axios.put(`http://localhost:5000/usuarios/${usuario.id}`, { ...usuario, estado: 'activo' });
+                await axios.put(`http://localhost:5000/usuarios/${usuario._id}`, { ...usuario, estado: 'activo' });
                 fetchUsuarios(); // Recarga los usuarios después de la reactivación
                 Swal.fire({
                     icon: 'success',
@@ -114,7 +114,7 @@ const GestionUsuarios = () => {
                 confirmButtonText: 'Aceptar'
             });
         }
-    };    
+    };
 
     const columns = useMemo(() => [
         {
@@ -165,23 +165,21 @@ const GestionUsuarios = () => {
                         <button
                             onClick={() => handleDelete(row.original)}
                             className="bg-red-600 text-white py-1 px-2 rounded hover:bg-red-700"
-                            >
-                                <FaArchive className="inline-block mr-1" /> 
-                            Inactivar
+                        >
+                            <FaArchive className="inline-block mr-1" /> Inactivar
                         </button>
                     ) : (
                         <button
-                            onClick={() => handleReactivar(row.original)} // Debes crear esta función para reactivar usuarios
+                            onClick={() => handleReactivar(row.original)} 
                             className="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
                         >
-                            <FaUndo className="inline-block mr-1" /> 
-                            Reactivar
+                            <FaUndo className="inline-block mr-1" /> Reactivar
                         </button>
                     )}
                 </div>
             )
-        }        
-    ], []);
+        }
+    ], [showInactivos]);
 
     const {
         getTableProps,
