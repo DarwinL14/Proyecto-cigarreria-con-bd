@@ -18,7 +18,8 @@ const EditarProveedor = () => {
     useEffect(() => {
         const fetchProveedor = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/proveedores/${id}`);
+                const response = await axios.get(`http://localhost:5000/proveedores/consulta/${id}`);
+                console.log(response.data);
                 setFormData(response.data);
             } catch (error) {
                 console.error('Error al obtener el proveedor', error);
@@ -38,7 +39,7 @@ const EditarProveedor = () => {
         event.preventDefault();
 
         try {
-            await axios.put(`http://localhost:5000/proveedores/${id}`, formData);
+            await axios.put(`http://localhost:5000/proveedores/actualizar/${id}`, formData);
 
             // Mostrar alerta de SweetAlert2
             Swal.fire({

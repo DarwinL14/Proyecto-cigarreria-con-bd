@@ -63,7 +63,7 @@ const ProductosInactivos = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.put(`http://localhost:5000/productos/${producto._id}`, { ...producto, estado: 'activo' });
+                    await axios.put(`http://localhost:5000/productos/estado/${producto._id}`, { ...producto, estado: 'activo' });
                     fetchProductos();
                 } catch (error) {
                     console.error('Error al reactivar el producto', error);

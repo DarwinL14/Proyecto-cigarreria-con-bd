@@ -69,7 +69,7 @@ const GestionProveedores = () => {
                     <div className="flex space-x-2 justify-center">
                         {!mostrarInactivos && (
                             <button
-                                onClick={() => navigate(`/editar-proveedor/${row.original.id}`)}
+                                onClick={() => navigate(`/editar-proveedor/${row.original._id}`)}
                                 className="bg-blue-600 text-white py-1 px-2 rounded hover:bg-blue-700"
                             >
                                 <FaEdit className="inline-block mr-1" /> Editar

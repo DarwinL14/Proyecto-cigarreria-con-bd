@@ -64,7 +64,7 @@ const GestionProductos = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.put(`http://localhost:5000/productos/${producto._id}`, { ...producto, estado: 'inactivo' });
+                    await axios.put(`http://localhost:5000/productos/estado/${producto._id}`, { ...producto, estado: 'inactivo' });
                     fetchProductos();
                     Swal.fire({
                         title: 'Éxito',
@@ -201,7 +201,7 @@ const GestionProductos = () => {
                                 <div className="flex gap-2">
                                     {producto.cantidad > 0 ? (
                                         <button
-                                            onClick={() => navigate(`/editar-producto/${producto.id}`)}
+                                            onClick={() => navigate(`/editar-producto/${producto._id}`)}
                                             className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
                                         >
                                             <FaEdit className="inline-block mr-2" /> Editar

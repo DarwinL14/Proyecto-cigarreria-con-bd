@@ -37,7 +37,7 @@ const EditarProducto = () => {
     useEffect(() => {
         const fetchProducto = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/productos/${id}`);
+                const response = await axios.get(`http://localhost:5000/productos/consulta/${id}`);
                 setFormData(response.data);
             } catch (error) {
                 console.error('Error al obtener el producto', error);
@@ -47,7 +47,7 @@ const EditarProducto = () => {
 
         const fetchProveedores = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/proveedores');
+                const response = await axios.get('http://localhost:5000/proveedores/consulta');
                 setProveedores(response.data);
             } catch (error) {
                 console.error('Error al obtener los proveedores', error);
@@ -74,7 +74,7 @@ const EditarProducto = () => {
         };
 
         try {
-            await axios.put(`http://localhost:5000/productos/${id}`, updatedFormData);
+            await axios.put(`http://localhost:5000/productos/actualizar/${id}`, updatedFormData);
             Swal.fire({
                 icon: 'success',
                 title: 'Actualizado',
