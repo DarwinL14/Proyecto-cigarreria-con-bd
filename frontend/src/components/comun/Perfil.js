@@ -110,7 +110,7 @@ const Profile = () => {
         }
     
         try {
-            await axios.put(`http://localhost:5000/usuarios/${userId}`, editedData);
+            await axios.put(`http://localhost:5000/usuarios/loggeado/${userId}`, editedData);
     
             localStorage.setItem('name', editedData.nombre);
             localStorage.setItem('username', editedData.nombreUsuario);

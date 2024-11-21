@@ -105,5 +105,33 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+//ruta para actualizar usuario loggeado
+router.put('/loggeado/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const { correo, telefono, direccion } = req.body; // Los datos que quieres permitir actualizar
+
+    try {
+        // Buscar el usuario por su ID
+        const user = await Usuario.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Actualizar los campos que se pasen en la solicitud
+        user.correo = correo || user.correo;
+        user.telefono = telefono || user.telefono;
+        user.direccion = direccion || user.direccion;
+
+        // Guardar los cambios en la base de datos
+        await user.save();
+
+        return res.status(200).json({ message: 'Usuario actualizado con éxito', user });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Error al actualizar el usuario' });
+    }
+});
+
 
 module.exports = router;
