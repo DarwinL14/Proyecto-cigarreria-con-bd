@@ -14,8 +14,9 @@ const Confirmacion = () => {
 
     useEffect(() => {
         if (pedidoId) {
+            console.log('Pedido ID:', pedidoId);
             // Hacer la solicitud a la API para obtener los detalles del pedido
-            axios.get(`http://localhost:5000/pedidos/${pedidoId}`)
+            axios.get(`http://localhost:5000/pedidos/confirmar/${pedidoId}`)
                 .then((response) => {
                     setPedidoData(response.data);
                     setLoading(false);

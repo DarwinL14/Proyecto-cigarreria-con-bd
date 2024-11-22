@@ -16,23 +16,31 @@ const DatosEntrega = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const usuarioId = localStorage.getItem('userId');
-        if (usuarioId) {
-            // Obtener el carrito del localStorage
-            const carritoData = JSON.parse(localStorage.getItem(`carrito_${usuarioId}`)) || [];
-            setCarrito(carritoData);
-
-            // Obtener direcciones del usuario desde la base de datos
-            axios.get(`http://localhost:5000/direcciones?usuarioId=${usuarioId}`)
-                .then(response => setDirecciones(response.data))
-                .catch(error => console.error('Error al obtener direcciones:', error));
-
-            // Obtener datos del usuario desde localStorage
-            setNombre(localStorage.getItem('name') || '');
-            setCorreo(localStorage.getItem('email') || '');
-            setTelefono(localStorage.getItem('phone') || '');
-        }
+        const obtenerDatos = async () => {
+            const usuarioId = localStorage.getItem('userId');
+            if (usuarioId) {
+                // Obtener el carrito del localStorage
+                const carritoData = JSON.parse(localStorage.getItem(`carrito_${usuarioId}`)) || [];
+                setCarrito(carritoData);
+    
+                // Obtener direcciones del usuario desde la base de datos con async/await
+                try {
+                    const response = await axios.get(`http://localhost:5000/direcciones/consulta/?usuarioId=${usuarioId}`);
+                    setDirecciones(response.data);
+                } catch (error) {
+                    console.error('Error al obtener direcciones:', error);
+                }
+    
+                // Obtener datos del usuario desde localStorage
+                setNombre(localStorage.getItem('name') || '');
+                setCorreo(localStorage.getItem('email') || '');
+                setTelefono(localStorage.getItem('phone') || '');
+            }
+        };
+    
+        obtenerDatos();
     }, []);
+    
 
     const handleAgregarDireccion = async () => {
         const { value: nuevaDireccion } = await Swal.fire({
@@ -55,8 +63,7 @@ const DatosEntrega = () => {
                     await axios.post('http://localhost:5000/direcciones', {
                         usuarioId,
                         direccion: nuevaDireccion
-                        
-                    });                 
+                    });                
                     setDirecciones([...direcciones, { direccion: nuevaDireccion }]);
                     window.location.reload();
                                                                 
@@ -70,7 +77,9 @@ const DatosEntrega = () => {
         
     };
 
-    const handleEditarDireccion = async (id, direccionActual) => {
+    const handleEditarDireccion = async (_id, direccionActual) => {
+        console.log('ID de la dirección:', _id); // Verifica si el ID es _id
+    
         const { value: nuevaDireccion } = await Swal.fire({
             title: 'Editar Dirección',
             input: 'text',
@@ -83,17 +92,18 @@ const DatosEntrega = () => {
             confirmButtonColor: '#3b82f6',
             cancelButtonText: 'Cancelar',
         });
-
+    
         if (nuevaDireccion) {
             try {
                 const usuarioId = localStorage.getItem('userId');
                 if (usuarioId) {
-                    await axios.put(`http://localhost:5000/direcciones/${id}`, {
+                    const response = await axios.put(`http://localhost:5000/direcciones/${_id}`, {
                         direccion: nuevaDireccion,
                         usuarioId
                     });
-                    // Actualizar la lista de direcciones
-                    setDirecciones(direcciones.map(d => d.id === id ? { ...d, direccion: nuevaDireccion } : d));
+    
+                    setDirecciones(direcciones.map(d => d._id === _id ? { ...d, direccion: nuevaDireccion } : d));
+                    Swal.fire('Éxito', 'Dirección actualizada correctamente', 'success');
                 }
             } catch (error) {
                 console.error('Error al actualizar la dirección:', error);
@@ -101,8 +111,8 @@ const DatosEntrega = () => {
             }
         }
     };
-
-    const handleEliminarDireccion = async (id) => {
+    
+    const handleEliminarDireccion = async (_id) => {
         const confirmacion = await Swal.fire({
             title: '¿Estás seguro?',
             text: "¡Esta acción eliminará la dirección!",
@@ -113,13 +123,13 @@ const DatosEntrega = () => {
             confirmButtonColor: '#ef4444',
             cancelButtonText: 'Cancelar'
         });
-
+    
         if (confirmacion.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:5000/direcciones/${id}`);
+                await axios.delete(`http://localhost:5000/direcciones/eliminar/${_id}`);
                 // Actualizar la lista de direcciones
-                setDirecciones(direcciones.filter(d => d.id !== id));
-                if (direccionSeleccionada === id) setDireccionSeleccionada('');
+                setDirecciones(direcciones.filter(d => d._id !== _id)); // Cambia id por _id aquí
+                if (direccionSeleccionada === _id) setDireccionSeleccionada('');
             } catch (error) {
                 console.error('Error al eliminar la dirección:', error);
                 Swal.fire('Error', 'Hubo un problema al eliminar la dirección.', 'error');
@@ -130,7 +140,7 @@ const DatosEntrega = () => {
     const enviarCorreoCajeros = async (pedido) => {
         try {
             // Obtener los correos y nombres de los cajeros
-            const { data: cajeros } = await axios.get('http://localhost:5000/usuarios?rol=cajero');
+            const { data: cajeros } = await axios.get('http://localhost:5000/usuarios/cajeros');
 
             // Enviar el correo a cada cajero
             await Promise.all(cajeros.map(cajero => {
@@ -165,39 +175,58 @@ const DatosEntrega = () => {
                 nombre,
                 correo,
                 telefono,
-                productos: carrito,
-                fecha: new Date().toISOString(),
+                productos: carrito.map(producto => ({
+                    id: producto._id,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    descripcion: producto.descripcion,
+                    imagen: producto.imagen,
+                    categoria: producto.categoria,
+                    cantidad: producto.cantidad,
+                    marca: producto.marca,
+                    estado: producto.estado || 'activo',
+                })),
+                metodoPago,
                 estadoPedido: 'pendiente',
-                estado: 'activo',
-                metodoPago // Incluye el método de pago en el pedido
+                estado: 'activo'
             };
 
             try {
                 const response = await axios.post('http://localhost:5000/pedidos', pedido);
 
                 await Promise.all(carrito.map(async (producto) => {
-                    const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto.id}`);
-                    const productoActualizado = {
-                        ...productoActual,
-                        cantidad: productoActual.cantidad - producto.cantidad,
-                    };
-                    await axios.put(`http://localhost:5000/productos/${producto.id}`, productoActualizado);
+                    try {
+                        const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto._id}`);
+                        
+                        // Asegúrate de que 'productoActual' tenga la propiedad 'cantidad' y que sea un número
+                        const nuevaCantidad = productoActual.cantidad - producto.cantidad;
+                        if (nuevaCantidad < 0) {
+                            throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
+                        }
+                
+                        // Solo envía lo que necesitas actualizar
+                        const productoActualizado = {
+                            cantidad: nuevaCantidad,
+                        };
+                
+                        await axios.put(`http://localhost:5000/productos/${producto._id}`, productoActualizado);
+                    } catch (error) {
+                        console.error("Error al actualizar el producto", error.message);
+                    }
                 }));
-
-                // Enviar correos a los cajeros
-                await enviarCorreoCajeros(pedido);
-
+                
                 localStorage.removeItem(`carrito_${usuarioId}`);
                 localStorage.removeItem('datosCarrito');
                 localStorage.removeItem('direccionEntrega');
 
-                navigate('/confirmar', { state: { pedidoId: response.data.id } });
+                navigate('/confirmar', { state: { pedidoId: response.data._id } });
             } catch (error) {
                 console.error('Error al crear el pedido:', error);
                 setError('Hubo un problema al procesar tu pedido.');
             }
         }
     };
+
 
     const calcularTotal = (productos) => {
         return productos.reduce((total, producto) => total + (parseFloat(producto.precio) || 0) * producto.cantidad, 0).toFixed(3);
@@ -253,7 +282,7 @@ const DatosEntrega = () => {
                         ) : (
                             <div>
                                 {direcciones.map((direccion) => (
-                                    <div key={direccion.id} className="flex items-center border-b border-gray-200 py-2">
+                                    <div key={direccion._id} className="flex items-center border-b border-gray-200 py-2">
                                         <input
                                             type="radio"
                                             id={`direccion-${direccion.id}`}
@@ -263,15 +292,15 @@ const DatosEntrega = () => {
                                             onChange={(e) => setDireccionSeleccionada(e.target.value)}
                                             className="mr-2"
                                         />
-                                        <label htmlFor={`direccion-${direccion.id}`} className="text-lg font-medium">{direccion.direccion}</label>
+                                        <label htmlFor={`direccion-${direccion._id}`} className="text-lg font-medium">{direccion.direccion}</label>
                                         <button
-                                            onClick={() => handleEditarDireccion(direccion.id, direccion.direccion)}
+                                            onClick={() => handleEditarDireccion(direccion._id, direccion.direccion)}
                                             className="ml-4 bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-400"
                                         >
                                             Editar
                                         </button>
                                         <button
-                                            onClick={() => handleEliminarDireccion(direccion.id)}
+                                            onClick={() => handleEliminarDireccion(direccion._id)}
                                             className="ml-2 bg-red-500 text-white py-1 px-2 rounded hover:bg-red-400"
                                         >
                                             Eliminar

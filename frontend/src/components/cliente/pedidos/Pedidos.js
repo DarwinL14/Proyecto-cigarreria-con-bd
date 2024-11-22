@@ -19,13 +19,15 @@ const Pedidos = () => {
         const usuarioId = localStorage.getItem('userId');
         if (usuarioId) {
             axios.get(`http://localhost:5000/pedidos?usuarioId=${usuarioId}`)
-                .then((response) => {
-                    setPedidos(response.data);
+            .then((response) => {
+                    setPedidos(response.data); // Guardar los pedidos en el estado
                 })
                 .catch((error) => {
-                    console.error('Error al obtener los pedidos:', error);
+                    console.error(error);
                     setError('Hubo un problema al obtener los pedidos.');
                 });
+        } else {
+            setError('No se encontró el ID del usuario en localStorage.');
         }
     }, []);
 

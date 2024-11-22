@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa'; // Importamos el ícono de react-icons
+import { FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
 
 const DetalleProducto = () => {
-    const { id } = useParams(); // Obtiene el ID del producto desde la URL
-    const navigate = useNavigate(); // Hook para redireccionar
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [producto, setProducto] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1); // Estado para la cantidad seleccionada
-    const [precioTotal, setPrecioTotal] = useState('0.00'); // Estado para el precio total
-    const [mensajeAdvertencia, setMensajeAdvertencia] = useState(''); // Estado para el mensaje de advertencia
+    const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
+    const [precioTotal, setPrecioTotal] = useState('0.00');
+    const [mensajeAdvertencia, setMensajeAdvertencia] = useState('');
 
     useEffect(() => {
         const fetchProducto = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/productos/${id}`);
+                const response = await axios.get(`http://localhost:5000/productos/consulta/${id}`);
                 setProducto(response.data);
-                setPrecioTotal(response.data.precio); // Inicializa el precio total
+                setPrecioTotal(response.data.precio);
             } catch (error) {
                 setError('Error al cargar el producto.');
             } finally {
@@ -42,7 +42,7 @@ const DetalleProducto = () => {
         } else {
             setMensajeAdvertencia('');
             setCantidadSeleccionada(cantidad);
-            setPrecioTotal((parseFloat(producto.precio) * cantidad).toFixed(3)); // Actualiza el precio total
+            setPrecioTotal((parseFloat(producto.precio) * cantidad).toFixed(2));
         }
     };
 
@@ -53,23 +53,27 @@ const DetalleProducto = () => {
         }
 
         const usuarioId = localStorage.getItem('userId'); // Obtener ID de usuario del localStorage
-        const carrito = JSON.parse(localStorage.getItem(`carrito_${usuarioId}`)) || [];
-        
+        const carritoKey = `carrito_${usuarioId}`;
+        const carrito = JSON.parse(localStorage.getItem(carritoKey)) || [];
+
         // Verificar si el producto ya está en el carrito
-        const productoExistente = carrito.find(p => p.id === producto.id);
+        const productoExistente = carrito.find((p) => p._id === producto._id);
+
         if (productoExistente) {
-            alert('Este producto ya está en el carrito.');
-            return;
+            productoExistente.cantidad += cantidadSeleccionada;
+        } else {
+            carrito.push({
+                ...producto,
+                cantidad: cantidadSeleccionada,
+            });
         }
 
-        carrito.push({ ...producto, cantidad: cantidadSeleccionada });
-        localStorage.setItem(`carrito_${usuarioId}`, JSON.stringify(carrito));
-        navigate('/cliente-dash'); 
+        localStorage.setItem(carritoKey, JSON.stringify(carrito));
+        navigate('/cliente-dash');
     };
 
-    // Función para manejar la navegación hacia atrás
     const handleVolver = () => {
-        navigate(-1); // Vuelve a la página anterior
+        navigate(-1);
     };
 
     if (loading) {
@@ -88,13 +92,11 @@ const DetalleProducto = () => {
         <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-center">
                 <div className="relative md:w-1/3">
-                    {/* Imagen del producto con filtro si está agotado */}
                     <img
                         src={producto.imagen}
                         alt={producto.nombre}
                         className={`w-full h-auto object-cover ${producto.cantidad === 0 ? 'grayscale' : ''}`}
                     />
-                    {/* Mostrar "AGOTADO" si la cantidad es 0 */}
                     {producto.cantidad === 0 && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                             <span className="text-white text-4xl font-bold">AGOTADO</span>
@@ -107,7 +109,6 @@ const DetalleProducto = () => {
                     <p className="text-gray-700 mb-4">{producto.descripcion}</p>
                     <p className="text-gray-700 mb-4">Cantidad disponible: {producto.cantidad}</p>
                     
-                    {/* Mostrar input de cantidad y botón solo si hay stock */}
                     {producto.cantidad > 0 && (
                         <>
                             <div className="mb-4">
@@ -126,27 +127,20 @@ const DetalleProducto = () => {
                             </div>
                             <button
                                 onClick={handleAgregarCarrito}
-                                className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 flex"
+                                className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 flex items-center"
                             >
                                 Agregar al Carrito
-                                
-                                <svg class="w-6 h-6 text-white ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h1.5L8 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm.75-3H7.5M11 7H6.312M17 4v6m-3-3h6"/>
-                                </svg>
-
                             </button>
                         </>
                     )}
                 </div>
             </div>
-
-            {/* Botón para volver, ubicado debajo de todo el contenido */}
             <div className="mt-8">
                 <button
                     onClick={handleVolver}
                     className="bg-gray-500 text-white py-2 px-4 rounded flex items-center hover:bg-gray-600"
                 >
-                    <FaArrowLeft className="mr-2" /> {/* Icono de flecha hacia la izquierda */}
+                    <FaArrowLeft className="mr-2" />
                     Volver
                 </button>
             </div>

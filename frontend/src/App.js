@@ -115,7 +115,7 @@ const App = () => {
             <Route path="/confirmar-venta" element={<ConfirmacionVenta />} />
             <Route path="/ventas-inactivas" element={<InactivasVentas />} />
             <Route path="/cliente-dash" element={<ClienteDashboard />} />
-            <Route path="/producto/:id" element={<DetalleProducto />} />
+            <Route path="/productos/:id" element={<DetalleProducto />} />
             <Route path="/ProductoSinLoggear/:id" element={<DetalleProductoSinLoggear />} />
             <Route path="/carrito" element={<Carrito />} />
             <Route path="/datos-entrega" element={<DatosEntrega />} />

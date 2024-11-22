@@ -23,6 +23,13 @@ app.use('/proveedores', proveedorRoutes);
 const productoRoutes = require('./routes/productos');
 app.use('/productos', productoRoutes);
 
+const pedidoRoutes = require('./routes/pedidos');
+app.use('/pedidos', pedidoRoutes);
+
+const direccionRoutes = require('./routes/direcciones');
+app.use('/direcciones', direccionRoutes);
+
+
 const ventaRoutes = require('./routes/ventas');
 app.use('/ventas', ventaRoutes);
 

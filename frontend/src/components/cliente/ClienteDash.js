@@ -31,42 +31,21 @@ const ClienteDashboard = () => {
     useEffect(() => {
         const fetchDatos = async () => {
             try {
-                const productosResponse = await axios.get('http://localhost:5000/productos/consulta');
-                const pedidosResponse = await axios.get('http://localhost:5000/pedidos');
-
-                const productosActivos = productosResponse.data.filter(producto => producto.estado === 'activo');
+                const { data: productosData } = await axios.get('http://localhost:5000/productos/consulta');
+    
+                const productosActivos = productosData.filter(producto => producto.estado === 'activo');
                 setProductos(productosActivos);
-
-                // Contar la cantidad total vendida de cada producto
-                const conteoProductos = {};
-                pedidosResponse.data.forEach(pedido => {
-                    pedido.productos.forEach(producto => {
-                        if (!conteoProductos[producto.id]) {
-                            conteoProductos[producto.id] = {
-                                ...producto,
-                                cantidadTotal: 0
-                            };
-                        }
-                        conteoProductos[producto.id].cantidadTotal += producto.cantidad;
-                    });
-                });
-
-                // Convertir el objeto a un array y ordenar por cantidad total vendida
-                const productosMasVendidosArray = Object.values(conteoProductos);
-                productosMasVendidosArray.sort((a, b) => b.cantidadTotal - a.cantidadTotal);
-
-                // Obtener los primeros 5 productos más vendidos
-                setProductosMasVendidos(productosMasVendidosArray.slice(0, 4));
+    
                 setFilteredProducts(productosActivos);
-
             } catch (error) {
                 setError('Error al obtener los datos');
                 console.error('Error al obtener los datos', error);
             }
         };
-
+    
         fetchDatos();
     }, []);
+    
 
     useEffect(() => {
         if (categoriaSeleccionada === '') {
@@ -105,7 +84,7 @@ const ClienteDashboard = () => {
                     {productosMasVendidos.length > 0 ? (
                         productosMasVendidos.map(producto => (
                             <Link
-                                to={`/producto/${producto.id}`}
+                                to={`/productos/${producto._id}`}
                                 key={producto.id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
@@ -167,8 +146,8 @@ const ClienteDashboard = () => {
                     {filteredProducts.length > 0 ? (
                         filteredProducts.map(producto => (
                             <Link
-                                to={`/producto/${producto.id}`}
-                                key={producto.id}
+                                to={`/productos/${producto._id}`}
+                                key={producto._id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105"
                             >
                                 <div className="w-full h-64 relative">

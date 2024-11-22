@@ -243,6 +243,24 @@ router.put('/actualizar-contrasena', async (req, res) => {
     }
 });
 
+// Ruta para obtener los usuarios con rol de 'cajero'
+router.get('/cajeros', async (req, res) => {
+    try {
+        // Filtrar usuarios por el rol de 'cajero'
+        const cajeros = await Usuario.find({ rol: 'cajero' });
+
+        if (cajeros.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron cajeros' });
+        }
+
+        // Enviar los cajeros encontrados como respuesta
+        res.status(200).json(cajeros);
+    } catch (error) {
+        console.error('Error al obtener cajeros:', error);
+        res.status(500).json({ message: 'Error al obtener los cajeros' });
+    }
+});
+
 
 
 
