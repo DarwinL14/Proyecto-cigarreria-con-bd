@@ -4,55 +4,39 @@ const router = express.Router();
 const Venta = require('../models/Venta');
 const Producto = require('../models/Producto');
 
-// Ruta para registrar una nueva venta
-router.post('/registro', async (req, res) => {
+// Ruta para registrar una venta
+router.post('/registrar', async (req, res) => {
     try {
-        // Desestructuramos los datos de la venta desde el cuerpo de la solicitud
-        const { productos, numeroDocumento, total, fechaVenta, metodoPago, estado } = req.body;
+        // Transformar precios y total a string
+        const productosTransformados = req.body.productos.map(producto => ({
+            ...producto,
+            precio: producto.precio.toString(), // Convertir precio a string
+        }));
 
-        // Crear una nueva instancia de Venta
+        const totalTransformado = req.body.total.toString(); // Convertir total a string
+
+        // Crear nueva venta
         const nuevaVenta = new Venta({
-            productos,
-            numeroDocumento,
-            total,
-            fechaVenta,
-            metodoPago,
-            estado
+            productos: productosTransformados,
+            numeroDocumento: req.body.numeroDocumento,
+            total: totalTransformado,
+            fechaVenta: req.body.fechaVenta, // Asegúrate de enviar una fecha válida desde el frontend
+            metodoPago: req.body.metodoPago,
+            estado: req.body.estado || 'activo',
         });
 
-        // Guardar la venta en la base de datos
-        await nuevaVenta.save();
-
-        // Ahora, actualizamos el inventario de los productos
-        for (const producto of productos) {
-            // Buscar el producto en la base de datos
-            const productoExistente = await Producto.findById(producto.id);
-
-            // Verificar si el producto existe
-            if (!productoExistente) {
-                return res.status(404).json({ message: `Producto con ID ${producto.id} no encontrado` });
-            }
-
-            // Verificar si hay suficiente stock
-            if (productoExistente.cantidad < producto.cantidad) {
-                return res.status(400).json({ message: `No hay suficiente stock para el producto ${producto.nombre}` });
-            }
-
-            // Restar la cantidad del producto vendido
-            productoExistente.cantidad -= producto.cantidad;
-
-            // Guardar los cambios en el producto
-            await productoExistente.save();
-        }
-
-        // Si todo fue exitoso, enviamos una respuesta positiva
-        res.status(201).json({ message: "Venta registrada con éxito" });
+        // Guardar en la base de datos
+        const ventaGuardada = await nuevaVenta.save();
+        res.status(201).json({
+            mensaje: 'Venta registrada exitosamente',
+            venta: ventaGuardada,
+        });
     } catch (error) {
-        // Si ocurre algún error, devolvemos un error genérico
-        console.error(error);  // Mostrar error en la consola del servidor
-        res.status(500).json({ message: "Error al registrar la venta", error: error.message });
+        console.error('Error al registrar la venta:', error);
+        res.status(500).json({ mensaje: 'Error al registrar la venta', error });
     }
 });
+
 
 // Obtener todas las ventas
 router.get('/consulta', async (req, res) => {

@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 const ConfirmacionVenta = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { productosSeleccionados } = location.state || {};
+    const productosSeleccionados = location.state?.productosSeleccionados || [];
 
     const [numeroDocumento, setNumeroDocumento] = useState('');
     const [metodoPago, setMetodoPago] = useState('Efectivo');
@@ -24,17 +24,37 @@ const ConfirmacionVenta = () => {
             return;
         }
 
+        const fechaVentaStr = new Date().toLocaleDateString("es-CO", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+
         const venta = {
-            productos: productosSeleccionados,
+            productos: productosSeleccionados.map(producto => ({
+                id: producto._id,
+                nombre: producto.nombre,
+                precio: parseFloat(producto.precio.replace(',', '')),
+                cantidad: producto.cantidad,
+                descripcion: producto.descripcion,
+                imagen: producto.imagen,
+                categoria: producto.categoria,
+                marca: producto.marca,
+
+              })),
             numeroDocumento,
             total,
-            fechaVenta: new Date().toLocaleDateString(),
+            fechaVenta: fechaVentaStr,
             metodoPago,
             estado 
         };
 
+        // **Depuración**: imprime el objeto `venta` en la consola
+        console.log(venta);
+
         try {
             // Registrar la venta
+
             await axios.post('http://localhost:5000/ventas/registro', venta);
 
 
