@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/Usuario');
 
-
 // Ruta para registrar usuario
 router.post('/', async (req, res) => {
     try {
@@ -132,6 +131,107 @@ router.put('/loggeado/:userId', async (req, res) => {
         return res.status(500).json({ message: 'Error al actualizar el usuario' });
     }
 });
+
+// Ruta para verificar la contraseña actual
+router.post('/:id/verificar-contrasena', async (req, res) => {
+    const { id } = req.params;
+    const { contrasenaActual } = req.body; // Contraseña encriptada enviada desde el frontend
+
+    try {
+        const usuario = await Usuario.findById(id);
+
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        if (usuario.contrasena === contrasenaActual) {
+            return res.status(200).json({ message: 'Contraseña correcta' });
+        } else {
+            return res.status(401).json({ message: 'Contraseña incorrecta' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error al verificar la contraseña', error });
+    }
+});
+
+// Ruta para cambiar la contraseña
+router.put('/:id/cambiar-contrasena', async (req, res) => {
+    const { id } = req.params;
+    const { nuevaContrasena } = req.body; // Contraseña encriptada enviada desde el frontend
+
+    try {
+        const usuario = await Usuario.findById(id);
+
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        usuario.contrasena = nuevaContrasena; // Actualiza la contraseña en la base de datos
+        await usuario.save();
+
+        res.status(200).json({ message: 'Contraseña actualizada con éxito' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la contraseña', error });
+    }
+});
+
+// 1. Ruta para generar y guardar el código de recuperación
+router.post('/recuperar-contrasena', async (req, res) => {
+    const { correo } = req.body; // El correo que nos llega del frontend
+
+    try {
+        // Buscar al usuario por correo
+        const usuario = await Usuario.findOne({ correo });
+
+        if (!usuario) {
+            return res.status(404).json({ message: 'Correo no registrado' });
+        }
+
+        // Generar un código de recuperación
+        const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Guardar el código en la base de datos
+        usuario.codigoRecuperacion = codigo;
+        await usuario.save();
+
+        // Aquí el frontend será el encargado de enviar el correo
+
+        res.status(200).json({ message: 'Código de recuperación generado y guardado. Ahora el frontend debe enviarlo por correo.' });
+    } catch (error) {
+        console.error('Error al generar el código de recuperación:', error);
+        res.status(500).json({ message: 'Error al generar el código de recuperación', error });
+    }
+});
+
+// 2. Ruta para obtener el código de recuperación
+router.post('/obtener-codigo-recuperacion', async (req, res) => {
+    const { correo } = req.body; // El correo que nos llega del frontend
+
+    try {
+        // Buscar al usuario por correo
+        const usuario = await Usuario.findOne({ correo });
+
+        if (!usuario) {
+            return res.status(404).json({ message: 'Correo no registrado' });
+        }
+
+        // Verificamos si el usuario tiene un código de recuperación
+        if (!usuario.codigoRecuperacion) {
+            return res.status(400).json({ message: 'No hay código de recuperación disponible' });
+        }
+
+        // Devolver el código al frontend
+        res.status(200).json({ codigo: usuario.codigoRecuperacion });
+    } catch (error) {
+        console.error('Error al obtener el código de recuperación:', error);
+        res.status(500).json({ message: 'Error al obtener el código de recuperación', error });
+    }
+});
+
+
+
+
+
 
 
 module.exports = router;

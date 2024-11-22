@@ -188,31 +188,27 @@ const Profile = () => {
                 }
             }
         });
-
+    
         if (currentPassword) {
             const cifradaCurrentPassword = encriptarContrasena(currentPassword);
-
+    
             try {
-                const response = await axios.get(`http://localhost:5000/usuarios/${userId}`);
-                const user = response.data;
-
-                // Comparar la contraseña cifrada con la contraseña almacenada en la base de datos
-                if (cifradaCurrentPassword === user.contrasena) {
-                    // Mostrar el formulario para la nueva contraseña
-                    const { value: newPassword, dismiss } = await Swal.fire({
+                const response = await axios.post(`http://localhost:5000/usuarios/${userId}/verificar-contrasena`, {
+                    contrasenaActual: cifradaCurrentPassword
+                });
+    
+                if (response.status === 200) {
+                    // Mostrar formulario para la nueva contraseña
+                    const { value: newPassword } = await Swal.fire({
                         title: 'Ingrese su nueva contraseña',
                         input: 'password',
                         inputLabel: 'Nueva contraseña',
                         inputPlaceholder: 'Ingrese su nueva contraseña',
-                        inputAttributes: {
-                            'aria-label': 'Nueva contraseña'
-                        },
                         showCancelButton: true,
                         confirmButtonText: 'Cambiar',
                         confirmButtonColor: '#2563eb',
                         cancelButtonText: 'Cancelar',
                         preConfirm: (newPassword) => {
-                            // Validar la nueva contraseña
                             const mensajeValidacion = validarContrasena(newPassword);
                             if (mensajeValidacion !== 'Contraseña segura.') {
                                 Swal.showValidationMessage(mensajeValidacion);
@@ -220,18 +216,17 @@ const Profile = () => {
                             return newPassword;
                         }
                     });
-
+    
                     if (newPassword) {
                         const cifradaNewPassword = encriptarContrasena(newPassword);
-
-                        await axios.put(`http://localhost:5000/usuarios/${userId}`, {
-                            ...user,
-                            contrasena: cifradaNewPassword
+    
+                        await axios.put(`http://localhost:5000/usuarios/${userId}/cambiar-contrasena`, {
+                            nuevaContrasena: cifradaNewPassword
                         });
-
+    
                         localStorage.setItem('password', newPassword);
                         setUserData({ ...userData, contrasena: newPassword });
-
+    
                         Swal.fire({
                             title: 'Éxito',
                             text: 'Contraseña cambiada con éxito',
@@ -240,25 +235,18 @@ const Profile = () => {
                             confirmButtonColor: '#2563eb'
                         });
                     }
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'La contraseña actual no coincide',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar',
-                        confirmButtonColor: '#2563eb'
-                    });
                 }
             } catch (error) {
                 Swal.fire({
                     title: 'Error',
-                    text: 'Ocurrió un error al verificar la contraseña',
+                    text: error.response?.data.message || 'Ocurrió un error al verificar la contraseña',
                     icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
             }
         }
-    };    
+    };
+      
 
     const handleBack = () => {
         // Usar window.history.back() si no usas React Router

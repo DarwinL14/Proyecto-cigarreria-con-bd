@@ -2,84 +2,67 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import axios from 'axios';
-import emailjs from 'emailjs-com';
+import { send } from 'emailjs-com';
 import fuera_2 from "../../assets/images/fuera_2.jpeg";
 
 const RecuperacionContrasena = () => {
     const [correo, setCorreo] = useState('');
-    const navigate = useNavigate();
+    const [mensaje, setMensaje] = useState('');
+    const [error, setError] = useState('');
 
-    // Función para generar un código aleatorio de 6 dígitos
-    const generarCodigo = () => {
-        return Math.floor(100000 + Math.random() * 900000).toString();
-    };
-
-    // Función para enviar el correo de recuperación
-    const enviarCorreoRecuperacion = async (correo) => {
-        try {
-            const { data: usuarios } = await axios.get(`http://localhost:5000/usuarios?correo=${correo}`);
-
-            if (usuarios.length > 0) {
-                const usuario = usuarios[0];
-                const codigo = generarCodigo();
-
-                // Guardar el código en la base de datos o localStorage para validarlo después
-                await axios.patch(`http://localhost:5000/usuarios/${usuario.id}`, { codigoRecuperacion: codigo });
-
-                // Enviar el correo con EmailJS
-                await emailjs.send('service_podqncg', 'template_xnpls19', {
-                    to_name: usuario.nombre,
-                    to_correo: usuario.correo,
-                    message: `Tu código de restablecimiento es: ${codigo}. Utiliza este código para restablecer tu contraseña.`,
-                    from_name: 'Colonial Support'
-                }, 'it57DOPi1-ZuX3rXe');
-
-                return true; // Código enviado con éxito
-            } else {
-                return false; // No se encontró el correo
-            }
-        } catch (error) {
-            console.error('Error al enviar correo de recuperación:', error);
-            return false;
-        }
-    };
-
-    // Función para manejar los cambios en el campo de correo
     const handleChange = (e) => {
-        setCorreo(e.target.value); // Actualiza el estado con el valor ingresado
+        setCorreo(e.target.value);
     };
 
-    // Manejador del formulario
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevenir el envío por defecto del formulario
+        try {
+            // 1. Primero, solicitamos al backend que genere el código de recuperación
+            const response = await axios.post('http://localhost:5000/recuperar-contrasena', { correo });
+            
+            setMensaje(response.data.message); // Mostrar el mensaje de éxito
+            setError('');
 
-        // Verificación básica del correo
-        const correoRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!correoRegex.test(correo)) {
+            // 2. Luego, solicitamos el código generado
+            const codigoResponse = await axios.post('http://localhost:5000/obtener-codigo-recuperacion', { correo });
+            const { codigo } = codigoResponse.data; // El código recibido del backend
+
+            // 3. Ahora enviamos el correo con el código de recuperación utilizando EmailJS
+            const emailData = {
+                to_email: correo,
+                subject: 'Recuperación de Contraseña',
+                message: `Tu código de recuperación es: ${codigo}`
+            };
+
+            // Configura EmailJS para el envío
+            send(
+                'service_podqncg', // Tu ID de servicio EmailJS
+                'template_xnpls19', // Tu ID de plantilla EmailJS
+                emailData,
+                'it57DOPi1-ZuX3rXe' // Tu usuario de EmailJS
+            )
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Correo enviado',
+                        text: 'El código de recuperación ha sido enviado a tu correo.'
+                    });
+                })
+                .catch((error) => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Hubo un problema al enviar el correo. Intenta nuevamente.'
+                    });
+                });
+
+        } catch (error) {
+            setError(error.response.data.message);
+            setMensaje('');
             Swal.fire({
                 icon: 'error',
-                title: 'Correo inválido',
-                text: 'Por favor, introduce un correo válido.',
-            });
-            return;
-        }
-
-        // Llamar a la función de enviar el correo
-        const correoEnviado = await enviarCorreoRecuperacion(correo);
-
-        if (correoEnviado) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Correo enviado',
-                text: 'Te hemos enviado un código de restablecimiento. Revisa tu correo.',
-            });
-            // Redirigir a la vista para ingresar el código
-            navigate('/ingresar_codigo');
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Correo no encontrado',
-                text: 'El correo proporcionado no está registrado.',
+                title: 'Error',
+                text: error.response.data.message,
             });
         }
     };
