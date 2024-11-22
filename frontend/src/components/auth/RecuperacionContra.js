@@ -1,68 +1,62 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import emailjs from 'emailjs-com';
 import axios from 'axios';
-import { send } from 'emailjs-com';
+import { useNavigate } from 'react-router-dom'; // Importa useNavigate
 import fuera_2 from "../../assets/images/fuera_2.jpeg";
 
 const RecuperacionContrasena = () => {
     const [correo, setCorreo] = useState('');
     const [mensaje, setMensaje] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate(); // Inicializa useNavigate
 
     const handleChange = (e) => {
         setCorreo(e.target.value);
     };
 
+    // Función para generar el código de recuperación
+    const generarCodigo = () => {
+        return Math.floor(100000 + Math.random() * 900000).toString(); // Código de 6 dígitos
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault(); // Prevenir el envío por defecto del formulario
+
+        const codigoRecuperacion = generarCodigo(); // Generamos el código en el frontend
+
         try {
-            // 1. Primero, solicitamos al backend que genere el código de recuperación
-            const response = await axios.post('http://localhost:5000/recuperar-contrasena', { correo });
-            
-            setMensaje(response.data.message); // Mostrar el mensaje de éxito
-            setError('');
+            // Enviar solicitud al backend para guardar el código de recuperación
+            const response = await axios.post('http://localhost:5000/usuarios/recuperar-contrasena', { correo, codigoRecuperacion });
 
-            // 2. Luego, solicitamos el código generado
-            const codigoResponse = await axios.post('http://localhost:5000/obtener-codigo-recuperacion', { correo });
-            const { codigo } = codigoResponse.data; // El código recibido del backend
+            if (response.status === 200) {
+                // Enviar el correo con el código usando EmailJS
+                await emailjs.send('service_podqncg', 'template_xnpls19', {
+                    to_name: 'Usuario',
+                    to_correo: correo,
+                    message: `Tu código de restablecimiento es: ${codigoRecuperacion}. Utiliza este código para restablecer tu contraseña.`,
+                    from_name: 'Colonial Support'
+                }, 'it57DOPi1-ZuX3rXe');
 
-            // 3. Ahora enviamos el correo con el código de recuperación utilizando EmailJS
-            const emailData = {
-                to_email: correo,
-                subject: 'Recuperación de Contraseña',
-                message: `Tu código de recuperación es: ${codigo}`
-            };
-
-            // Configura EmailJS para el envío
-            send(
-                'service_podqncg', // Tu ID de servicio EmailJS
-                'template_xnpls19', // Tu ID de plantilla EmailJS
-                emailData,
-                'it57DOPi1-ZuX3rXe' // Tu usuario de EmailJS
-            )
-                .then(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Correo enviado',
-                        text: 'El código de recuperación ha sido enviado a tu correo.'
-                    });
-                })
-                .catch((error) => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Hubo un problema al enviar el correo. Intenta nuevamente.'
-                    });
+                // Mostrar mensaje de éxito con SweetAlert
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Código enviado!',
+                    text: 'Se ha enviado el código de recuperación a tu correo.',
+                    confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    // Redirigir a la página de ingresar código
+                    navigate('/ingresar_codigo');
                 });
-
+            }
         } catch (error) {
-            setError(error.response.data.message);
-            setMensaje('');
+            console.error('Error al recuperar la contraseña', error);
+            // Mostrar mensaje de error con SweetAlert
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.response.data.message,
+                text: 'Hubo un error al recuperar la contraseña. Intenta nuevamente.',
+                confirmButtonText: 'Aceptar'
             });
         }
     };
@@ -71,14 +65,13 @@ const RecuperacionContrasena = () => {
         <div className="relative min-h-screen flex items-center justify-center">
             <div className="absolute inset-0">
                 <img
-                    src={fuera_2}  // Ahora está definido
+                    src={fuera_2}
                     alt="Fondo"
                     className="w-full h-full object-cover filter blur"
                 />
                 <div className="absolute inset-0 bg-gray-900 opacity-40"></div>
             </div>
             <div className="relative z-10 w-full max-w-md p-6 mx-auto">
-                {/* Texto "Colonial" fuera del div blanco */}
                 <div className="text-center mb-6">
                     <a href="/inicio" className="text-4xl font-bold text-gray-300 hover:text-gray-100 transition-colors">
                         Colonial
@@ -102,7 +95,7 @@ const RecuperacionContrasena = () => {
                                     name="correo"
                                     id="correo"
                                     value={correo}
-                                    onChange={handleChange} // Usar la función handleChange
+                                    onChange={handleChange}
                                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                     placeholder="Tu correo electrónico registrado"
                                     required

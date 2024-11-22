@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/Usuario');
 
+
 // Ruta para registrar usuario
 router.post('/', async (req, res) => {
     try {
@@ -174,10 +175,9 @@ router.put('/:id/cambiar-contrasena', async (req, res) => {
         res.status(500).json({ message: 'Error al actualizar la contraseña', error });
     }
 });
-
-// 1. Ruta para generar y guardar el código de recuperación
+// Ruta para guardar el código de recuperación
 router.post('/recuperar-contrasena', async (req, res) => {
-    const { correo } = req.body; // El correo que nos llega del frontend
+    const { correo, codigoRecuperacion } = req.body; // El correo y el código enviados desde el frontend
 
     try {
         // Buscar al usuario por correo
@@ -187,49 +187,61 @@ router.post('/recuperar-contrasena', async (req, res) => {
             return res.status(404).json({ message: 'Correo no registrado' });
         }
 
-        // Generar un código de recuperación
-        const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // Guardar el código en la base de datos
-        usuario.codigoRecuperacion = codigo;
+        // Guardar el código de recuperación en la base de datos
+        usuario.codigoRecuperacion = codigoRecuperacion;
         await usuario.save();
 
-        // Aquí el frontend será el encargado de enviar el correo
-
-        res.status(200).json({ message: 'Código de recuperación generado y guardado. Ahora el frontend debe enviarlo por correo.' });
+        // Responder con éxito
+        res.status(200).json({ message: 'Código de recuperación guardado correctamente' });
     } catch (error) {
-        console.error('Error al generar el código de recuperación:', error);
-        res.status(500).json({ message: 'Error al generar el código de recuperación', error });
+        console.error('Error al guardar el código de recuperación:', error);
+        res.status(500).json({ message: 'Error al guardar el código de recuperación', error });
     }
 });
 
-// 2. Ruta para obtener el código de recuperación
-router.post('/obtener-codigo-recuperacion', async (req, res) => {
-    const { correo } = req.body; // El correo que nos llega del frontend
+// Ruta para verificar el código de recuperación
+router.get('/verificar-codigo', async (req, res) => {
+    const { correo, codigo } = req.query;  // Recibimos el correo y el código
 
     try {
-        // Buscar al usuario por correo
         const usuario = await Usuario.findOne({ correo });
 
         if (!usuario) {
-            return res.status(404).json({ message: 'Correo no registrado' });
+            return res.status(404).json({ message: 'Correo no encontrado' });
         }
 
-        // Verificamos si el usuario tiene un código de recuperación
-        if (!usuario.codigoRecuperacion) {
-            return res.status(400).json({ message: 'No hay código de recuperación disponible' });
+        if (usuario.codigoRecuperacion !== codigo) {
+            return res.status(400).json({ message: 'Código incorrecto' });
         }
 
-        // Devolver el código al frontend
-        res.status(200).json({ codigo: usuario.codigoRecuperacion });
+        res.status(200).json({ message: 'Código válido' });
+
     } catch (error) {
-        console.error('Error al obtener el código de recuperación:', error);
-        res.status(500).json({ message: 'Error al obtener el código de recuperación', error });
+        console.error(error);
+        res.status(500).json({ message: 'Error al verificar el código' });
     }
 });
 
 
+router.put('/actualizar-contrasena', async (req, res) => {
+    const { correo, nuevaContrasena } = req.body;
 
+    try {
+        const usuario = await Usuario.findOne({ correo });
+
+        if (!usuario) {
+            return res.status(404).json({ message: 'Correo no encontrado' });
+        }
+
+        usuario.contrasena = nuevaContrasena;  // Actualiza la contraseña con la nueva
+        await usuario.save();
+
+        res.status(200).json({ message: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al actualizar la contraseña' });
+    }
+});
 
 
 

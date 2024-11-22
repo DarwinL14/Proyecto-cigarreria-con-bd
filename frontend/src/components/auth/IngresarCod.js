@@ -42,7 +42,8 @@ const VerificarCodigo = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
+        // Validación del correo
         const correoRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!correoRegex.test(correo)) {
             Swal.fire({
@@ -52,7 +53,8 @@ const VerificarCodigo = () => {
             });
             return;
         }
-
+    
+        // Validación del código
         if (codigo.length !== 6 || isNaN(codigo)) {
             Swal.fire({
                 icon: 'error',
@@ -61,35 +63,18 @@ const VerificarCodigo = () => {
             });
             return;
         }
-
+    
         try {
-            const { data: usuarios } = await axios.get(`http://localhost:5000/usuarios?correo=${correo}`);
-
-            if (usuarios.length > 0) {
-                const usuario = usuarios[0];
-
-                if (usuario.codigoRecuperacion === codigo) {
-                    setIsModalOpen(true);
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Código incorrecto',
-                        text: 'El código introducido no es válido. Intenta de nuevo.',
-                    });
-                }
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Correo no encontrado',
-                    text: 'El correo proporcionado no está registrado.',
-                });
+            const response = await axios.get(`http://localhost:5000/usuarios/verificar-codigo?correo=${correo}&codigo=${codigo}`);
+    
+            if (response.status === 200) {
+                setIsModalOpen(true);  // Abre el modal para restablecer la contraseña
             }
         } catch (error) {
-            console.error('Error al verificar el código:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Ocurrió un error al verificar el código. Por favor, intenta más tarde.',
+                text: error.response?.data.message || 'Ocurrió un error al verificar el código.',
             });
         }
     };
@@ -103,25 +88,28 @@ const VerificarCodigo = () => {
             });
             return;
         }
-
+    
         const encryptedPassword = encriptarContrasena(newPassword); // Encriptar la nueva contraseña
+
+        console.log('Correo:', correo);
+        console.log('Nueva contraseña encriptada:', encryptedPassword);
+
+    
         try {
-            const response = await axios.get(`http://localhost:5000/usuarios?correo=${correo}`);
-            const usuario = response.data[0];
-
-            await axios.put(`http://localhost:5000/usuarios/${usuario.id}`, {
-                ...usuario,
-                contrasena: encryptedPassword, // Actualizar la contraseña en el servidor
+            const response = await axios.put(`http://localhost:5000/usuarios/actualizar-contrasena`,{
+                correo: correo,  // Asegúrate de que el correo esté disponible
+                nuevaContrasena: encryptedPassword,
+                
+                
             });
-
+    
             Swal.fire({
                 icon: 'success',
                 title: 'Éxito',
                 text: 'La contraseña ha sido restablecida con éxito.',
             });
-            navigate('/login');
+            navigate('/login');  // Redirige al login
         } catch (error) {
-            console.error('Error al restablecer la contraseña:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -129,7 +117,7 @@ const VerificarCodigo = () => {
             });
         }
     };
-
+    
     return (
         <div className="relative min-h-screen flex items-center justify-center">
             <div className="absolute inset-0">
