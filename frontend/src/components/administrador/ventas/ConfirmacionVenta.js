@@ -8,7 +8,6 @@ const ConfirmacionVenta = () => {
     const navigate = useNavigate();
     const { productosSeleccionados } = location.state || {};
 
-    const [tipoDocumento, setTipoDocumento] = useState('');
     const [numeroDocumento, setNumeroDocumento] = useState('');
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [estado, setEstado] = useState('activo'); 
@@ -36,26 +35,8 @@ const ConfirmacionVenta = () => {
 
         try {
             // Registrar la venta
-            await axios.post('http://localhost:5000/ventas', venta);
+            await axios.post('http://localhost:5000/ventas/registro', venta);
 
-            // Actualizar la cantidad de cada producto en el inventario
-            await Promise.all(productosSeleccionados.map(async (producto) => {
-                // Obtener los datos actuales del producto
-                const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto._id}`);
-
-                // Calcular la nueva cantidad
-                const nuevaCantidad = productoActual.cantidad - producto.cantidad;
-
-                // Actualizar la cantidad del producto
-                if (nuevaCantidad < 0) {
-                    throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
-                }
-
-                await axios.put(`http://localhost:5000/productos/${producto._id}`, {
-                    ...productoActual,  // Mantener los otros campos del producto
-                    cantidad: nuevaCantidad  // Disminuir la cantidad
-                });
-            }));
 
             localStorage.removeItem('productosSeleccionados');
 
@@ -71,7 +52,7 @@ const ConfirmacionVenta = () => {
             });
         } catch (error) {
             setError(`Error al registrar la venta: ${error.message}`);
-            console.error('Error al registrar la venta', error);
+            console.error('Error al registrar la venta', error.response ? error.response.data : error.message);
         }
     };
 
@@ -103,7 +84,7 @@ const ConfirmacionVenta = () => {
                         </thead>
                         <tbody>
                             {productosSeleccionados.map(producto => (
-                                <tr key={producto.id}>
+                                <tr key={producto._id}>
                                     <td className="py-4 px-4 border-b">
                                         <div className="flex items-center">
                                             <img src={producto.imagen} alt={producto.nombre} className="w-20 h-20 object-cover mr-4" />
