@@ -17,9 +17,12 @@ const Pedidos = () => {
 
     useEffect(() => {
         const usuarioId = localStorage.getItem('userId');
+        console.log('usuarioId:', usuarioId);
+
         if (usuarioId) {
-            axios.get(`http://localhost:5000/pedidos?usuarioId=${usuarioId}`)
+            axios.get(`http://localhost:5000/pedidos/pedidos?usuarioId=${usuarioId}`)
             .then((response) => {
+                    console.log(response.data); // Verifica los datos que recibes
                     setPedidos(response.data); // Guardar los pedidos en el estado
                 })
                 .catch((error) => {
