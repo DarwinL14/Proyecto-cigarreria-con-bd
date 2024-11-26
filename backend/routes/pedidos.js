@@ -34,30 +34,32 @@ router.post('/', async (req, res) => {
 });
 
 // Ruta para obtener los detalles de un pedido por su _id
-router.get('/pedidos/confirmar/:_id', async (req, res) => {
-    const { _id } = req.params;  // Usamos _id para que coincida con el formato del cliente
+router.get('/pedidos/confirmar', async (req, res) => {
+    const { _id } = req.params;
+
+    console.log(' ID recibido:', _id);  // Verificar si el usuarioId se está recibiendo correctamente
+
 
     try {
-        // Buscar el pedido por _id
         const pedido = await Pedido.findById(_id);
-
         if (!pedido) {
             return res.status(404).json({ message: 'Pedido no encontrado' });
         }
-
-        // Devolver el pedido encontrado
-        return res.status(200).json(pedido);
+        res.json(pedido);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Hubo un error al obtener el pedido' });
+        res.status(500).json({ error: 'Error al obtener el pedido' });
     }
 });
 
+
+//ruta para obtener los pedidos por usuarioId
 router.get('/pedidos', async (req, res) => {
-    const { usuarioId } = req.query;
+    const { usuarioId } = req.query; // Obtienes el usuarioId de los query parameters
+
+    console.log('Usuario ID recibido:', usuarioId);  // Verificar si el usuarioId se está recibiendo correctamente
 
     try {
-        // Buscar todos los pedidos del usuario
+        // Buscar los pedidos usando el usuarioId tal cual como un string
         const pedidos = await Pedido.find({ usuarioId });
 
         // Si no se encuentran pedidos
@@ -72,6 +74,24 @@ router.get('/pedidos', async (req, res) => {
         return res.status(500).json({ message: 'Hubo un error al obtener los pedidos.' });
     }
 });
+
+// Actualizar estado de pedido
+// app.put('/pedidos/:id/estado', async (req, res) => {
+//     const { id } = req.params;
+//     const { estadoPedido } = req.body;
+
+//     try {
+//         const pedidoActualizado = await Pedido.findByIdAndUpdate(
+//             id,
+//             { estadoPedido },
+//             { new: true }
+//         );
+//         res.json(pedidoActualizado);
+//     } catch (error) {
+//         res.status(500).json({ error: 'Error al actualizar el estado del pedido' });
+//     }
+// });
+
 
 
 module.exports = router;
