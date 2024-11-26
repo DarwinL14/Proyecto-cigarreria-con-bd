@@ -223,25 +223,45 @@ router.get('/verificar-codigo', async (req, res) => {
 });
 
 
-router.put('/actualizar-contrasena', async (req, res) => {
-    const { correo, nuevaContrasena } = req.body;
+const encriptarContrasena = (contrasena) => {
+    return contrasena
+        .split('') // Convertir la contraseña a un array de caracteres
+        .map((char) => String.fromCharCode(char.charCodeAt(0) + 3)) // Desplazar cada caracter 3 posiciones en ASCII
+        .join(''); // Unir el array de caracteres en una cadena
+};
+
+// Ruta para actualizar la contraseña del usuario
+// Ruta para actualizar la contraseña
+app.put('/usuarios/actualizar', async (req, res) => {
+    const { correo, nuevaContrasena } = req.body; // Recibe el correo y la nueva contraseña
+
+    if (!correo || !nuevaContrasena) {
+        return res.status(400).json({ message: 'Correo y nueva contraseña son obligatorios' });
+    }
 
     try {
-        const usuario = await Usuario.findOne({ correo });
+        // Buscar el usuario por correo
+        const usuario = await Usuario.findOne({ correo: correo });
 
         if (!usuario) {
-            return res.status(404).json({ message: 'Correo no encontrado' });
+            return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        usuario.contrasena = nuevaContrasena;  // Actualiza la contraseña con la nueva
+        // Encriptar la nueva contraseña con la función personalizada
+        const encryptedPassword = encriptarContrasena(nuevaContrasena);
+
+        // Actualizar la contraseña del usuario
+        usuario.contrasena = encryptedPassword;
         await usuario.save();
 
-        res.status(200).json({ message: 'Contraseña actualizada correctamente' });
+        res.status(200).json({ message: 'Contraseña actualizada con éxito' });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al actualizar la contraseña' });
     }
 });
+
 
 // Ruta para obtener los usuarios con rol de 'cajero'
 router.get('/cajeros', async (req, res) => {

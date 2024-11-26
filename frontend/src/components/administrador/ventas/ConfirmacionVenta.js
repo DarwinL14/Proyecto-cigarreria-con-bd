@@ -18,21 +18,21 @@ const ConfirmacionVenta = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+    
         if (!numeroDocumento || !metodoPago) {
             setError('Todos los campos son obligatorios.');
             return;
         }
-
+    
         const fechaVentaStr = new Date().toLocaleDateString("es-CO", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
-        });
-
+        });    
+    
         const venta = {
             productos: productosSeleccionados.map(producto => ({
-                id: producto._id,
+                id: producto._id,  // ID del producto
                 nombre: producto.nombre,
                 precio: parseFloat(producto.precio.replace(',', '')),
                 cantidad: producto.cantidad,
@@ -40,27 +40,23 @@ const ConfirmacionVenta = () => {
                 imagen: producto.imagen,
                 categoria: producto.categoria,
                 marca: producto.marca,
+                estado: producto.estado 
 
-              })),
+            })),
             numeroDocumento,
             total,
             fechaVenta: fechaVentaStr,
             metodoPago,
             estado 
         };
-
-        // **Depuración**: imprime el objeto `venta` en la consola
-        console.log(venta);
-
+    
+        console.log(venta);  // Depuración
+    
         try {
-            // Registrar la venta
-
-            await axios.post('http://localhost:5000/ventas/registro', venta);
-
-
+            await axios.post('http://localhost:5000/ventas', venta);
+    
             localStorage.removeItem('productosSeleccionados');
-
-            // Mostrar alerta con SweetAlert2
+    
             Swal.fire({
                 title: 'Éxito',
                 text: 'La venta se registró correctamente.',
@@ -75,6 +71,7 @@ const ConfirmacionVenta = () => {
             console.error('Error al registrar la venta', error.response ? error.response.data : error.message);
         }
     };
+    
 
     const handleAddMoreProducts = () => {
         navigate(-1);  // Volver a la página anterior sin recargar

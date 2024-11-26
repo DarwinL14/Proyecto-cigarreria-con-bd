@@ -5,37 +5,50 @@ const Venta = require('../models/Venta');
 const Producto = require('../models/Producto');
 
 // Ruta para registrar una venta
-router.post('/registrar', async (req, res) => {
+router.post('/', async (req, res) => {
+    const { productos, numeroDocumento, total, fechaVenta, metodoPago, estado } = req.body;
+
     try {
-        // Transformar precios y total a string
-        const productosTransformados = req.body.productos.map(producto => ({
-            ...producto,
-            precio: producto.precio.toString(), // Convertir precio a string
+        // Crear una nueva venta
+        const nuevaVenta = new Venta({
+            productos,
+            numeroDocumento,
+            total,
+            fechaVenta,
+            metodoPago,
+            estado
+        });
+
+        // Guardar la venta en la base de datos
+        await nuevaVenta.save();
+
+        // Actualizar la cantidad de productos en inventario
+        await Promise.all(productos.map(async (producto) => {
+
+            const productoActual = await Producto.findOne({ _id: producto.id });
+
+            if (!productoActual) {
+                throw new Error(`El producto ${producto.nombre} no existe.`);
+            }
+
+            const nuevaCantidad = productoActual.cantidad - producto.cantidad;
+
+            if (nuevaCantidad < 0) {
+                throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
+            }
+
+            // Actualizar el producto en la base de datos
+            await Producto.findByIdAndUpdate(producto.id, { $set: { cantidad: nuevaCantidad } });
         }));
 
-        const totalTransformado = req.body.total.toString(); // Convertir total a string
-
-        // Crear nueva venta
-        const nuevaVenta = new Venta({
-            productos: productosTransformados,
-            numeroDocumento: req.body.numeroDocumento,
-            total: totalTransformado,
-            fechaVenta: req.body.fechaVenta, // Asegúrate de enviar una fecha válida desde el frontend
-            metodoPago: req.body.metodoPago,
-            estado: req.body.estado || 'activo',
-        });
-
-        // Guardar en la base de datos
-        const ventaGuardada = await nuevaVenta.save();
-        res.status(201).json({
-            mensaje: 'Venta registrada exitosamente',
-            venta: ventaGuardada,
-        });
+        res.status(201).json({ message: 'Venta registrada correctamente' });
     } catch (error) {
-        console.error('Error al registrar la venta:', error);
-        res.status(500).json({ mensaje: 'Error al registrar la venta', error });
+        console.error(error);  // Para ver el detalle del error
+        res.status(500).json({ message: error.message });
     }
 });
+
+
 
 
 // Obtener todas las ventas

@@ -89,20 +89,18 @@ const VerificarCodigo = () => {
             return;
         }
     
-        const encryptedPassword = encriptarContrasena(newPassword); // Encriptar la nueva contraseña
-
+        // Solo pasamos la contraseña tal cual, sin encriptarla aquí
         console.log('Correo:', correo);
-        console.log('Nueva contraseña encriptada:', encryptedPassword);
-
+        console.log('Nueva contraseña:', newPassword);
     
         try {
-            const response = await axios.put(`http://localhost:5000/usuarios/actualizar-contrasena`,{
+            // Realizamos la solicitud PUT sin guardar la respuesta
+            await axios.put('http://localhost:5000/usuarios/actualizar', {
                 correo: correo,  // Asegúrate de que el correo esté disponible
-                nuevaContrasena: encryptedPassword,
-                
-                
+                nuevaContrasena: newPassword, // Enviar la contraseña sin encriptar
             });
     
+            // Si la solicitud fue exitosa
             Swal.fire({
                 icon: 'success',
                 title: 'Éxito',
@@ -110,6 +108,7 @@ const VerificarCodigo = () => {
             });
             navigate('/login');  // Redirige al login
         } catch (error) {
+            // Si ocurrió un error
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -117,6 +116,7 @@ const VerificarCodigo = () => {
             });
         }
     };
+    
     
     return (
         <div className="relative min-h-screen flex items-center justify-center">

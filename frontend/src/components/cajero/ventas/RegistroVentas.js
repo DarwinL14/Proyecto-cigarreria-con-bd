@@ -35,7 +35,7 @@ const RegistroVentas = () => {
 
         const fetchProductos = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/productos');
+                const response = await axios.get('http://localhost:5000/productos/consulta');
                 const productosActivos = response.data.filter(producto => producto.estado === 'activo');
                 setProductos(productosActivos);
                 setFilteredProducts(productosActivos);
@@ -80,7 +80,7 @@ const RegistroVentas = () => {
             return;
         }
 
-        const productoSeleccionado = productosSeleccionados.find(p => p.id === producto.id);
+        const productoSeleccionado = productosSeleccionados.find(p => p._id === producto._id);
 
         if (productoSeleccionado) {
             if (productoSeleccionado.cantidad >= producto.cantidad) {
@@ -94,7 +94,7 @@ const RegistroVentas = () => {
             }
 
             const updatedSelection = productosSeleccionados.map(p =>
-                p.id === producto.id ? { ...p, cantidad: p.cantidad + 1 } : p
+                p._id === producto._id ? { ...p, cantidad: p.cantidad + 1 } : p
             );
             setProductosSeleccionados(updatedSelection);
             localStorage.setItem('productosSeleccionados', JSON.stringify(updatedSelection));
@@ -105,16 +105,31 @@ const RegistroVentas = () => {
     };
 
     const handleRemoveProduct = (productoId) => {
-        const updatedSelection = productosSeleccionados.filter(producto => producto.id !== productoId);
+        const updatedSelection = productosSeleccionados.filter(producto => producto._id !== productoId);
         setProductosSeleccionados(updatedSelection);
         localStorage.setItem('productosSeleccionados', JSON.stringify(updatedSelection));
     };
 
     const handleQuantityChange = (productoId, cantidad) => {
-        if (cantidad > 0) {
-            const producto = productos.find(p => p.id === productoId);
+        const cantidadNumerica = Number(cantidad);
 
-            if (producto && cantidad > producto.cantidad) {
+         // Validar que la cantidad sea positiva y un número
+        if (cantidadNumerica <= 0 || isNaN(cantidadNumerica)) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor, ingrese una cantidad válida.',
+                icon: 'error',
+                confirmButtonColor: '#197419',
+            });
+            return;
+        }
+
+
+        if (cantidad > 0) {
+            const producto = productos.find(p => p._id === productoId);
+            const cantidadMaxima = Number(producto.cantidad);
+
+            if (producto && cantidad > cantidadMaxima) {
                 Swal.fire({
                     title: 'Error',
                     text: `La cantidad máxima disponible es ${producto.cantidad}.`,
@@ -125,7 +140,7 @@ const RegistroVentas = () => {
             }
 
             const updatedSelection = productosSeleccionados.map(producto =>
-                producto.id === productoId ? { ...producto, cantidad: Number(cantidad) } : producto
+                producto._id === productoId ? { ...producto, cantidad: Number(cantidad) } : producto
             );
             setProductosSeleccionados(updatedSelection);
             localStorage.setItem('productosSeleccionados', JSON.stringify(updatedSelection));
@@ -138,7 +153,8 @@ const RegistroVentas = () => {
                 title: 'Error',
                 text: 'Debe seleccionar al menos un producto antes de continuar.',
                 icon: 'warning',
-                confirmButtonColor: '#197419',
+                iconColor: 'blue',
+                confirmButtonColor: 'red',
             });
         } else {
             navigate('/confirmar-ventas-cajero', { state: { productosSeleccionados } });
@@ -180,7 +196,7 @@ const RegistroVentas = () => {
                         <div className="flex flex-col space-y-4">
                             {productosSeleccionados.length > 0 ? (
                                 productosSeleccionados.map(producto => (
-                                    <div key={producto.id} className="flex flex-col mb-4 bg-gray-100 p-2 rounded-md border border-gray-200">
+                                    <div key={producto._id} className="flex flex-col mb-4 bg-gray-100 p-2 rounded-md border border-gray-200">
                                         <div className="flex items-center mb-2">
                                             <div className="w-16 h-16 relative mr-4">
                                                 <img
@@ -196,7 +212,7 @@ const RegistroVentas = () => {
                                                     type="number"
                                                     min="1"
                                                     value={producto.cantidad}
-                                                    onChange={(e) => handleQuantityChange(producto.id, e.target.value)}
+                                                    onChange={(e) => handleQuantityChange(producto._id, e.target.value)}
                                                     className="mt-1 p-1 border border-gray-300 rounded w-full text-sm"
                                                 />
                                                 <p className="text-gray-800 text-sm mt-1">
@@ -205,7 +221,7 @@ const RegistroVentas = () => {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => handleRemoveProduct(producto.id)}
+                                            onClick={() => handleRemoveProduct(producto._id)}
                                             className="bg-red-500 text-white p-1 rounded hover:bg-red-600 w-20 mt-2"
                                         >
                                             Eliminar
@@ -270,7 +286,7 @@ const RegistroVentas = () => {
                 {filteredProducts.length > 0 ? (
                     filteredProducts.map(producto => (
                         <div
-                            key={producto.id}
+                            key={producto._id}
                             className={`bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105 ${producto.cantidad === 0 ? 'bg-red-100 border-red-400' : 'bg-white border-gray-200'}`}
                         >
                             <div className="w-full h-64 relative">

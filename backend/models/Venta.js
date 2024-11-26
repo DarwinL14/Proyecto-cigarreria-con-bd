@@ -1,23 +1,25 @@
 const mongoose = require('mongoose');
 
 const ProductoSchema = new mongoose.Schema({
-    id: { type: String, required: true },
-    nombre: { type: String, required: true },
-    precio: { type: String, required: true }, // Almacenar como string
-    cantidad: { type: Number, required: true },
-    descripcion: { type: String },
-    imagen: { type: String },
-    categoria: { type: String },
-    marca: { type: String },
+  id: { type: String, required: true },
+  nombre: { type: String, required: true },
+  precio: { type: Number, required: true },
+  descripcion: { type: String, required: true },
+  imagen: { type: String, required: true },
+  categoria: { type: String, required: true },
+  cantidad: { type: Number, required: true },
+  marca: { type: String, required: true },
+  estado: { type: String, required: true, enum: ['activo', 'inactivo'] },  
 });
 
 const VentaSchema = new mongoose.Schema({
-    productos: { type: [ProductoSchema], required: true },
-    numeroDocumento: { type: String, required: true },
-    total: { type: String, required: true }, // Total también como string
-    fechaVenta: { type: String, required: true }, // Asegurar que se guarde en formato 'DD/MM/YYYY'
-    metodoPago: { type: String, required: true },
-    estado: { type: String, default: 'activo' },
+  productos: { type: [ProductoSchema], required: true },
+  numeroDocumento: { type: String, required: true },
+  total: { type: Number, required: true },
+  fechaVenta: { type: String, required: true }, // Considera usar Date si deseas formato nativo
+  metodoPago: { type: String, required: true, enum: ["Tarjeta de Crédito", "Nequi", "Daviplata","Efectivo"] // Enumeración de los métodos de pago
+  },
+  estado: { type: String, required: true, enum: ['activo', 'inactivo'] },
 });
 
 module.exports = mongoose.model('Venta', VentaSchema);

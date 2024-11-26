@@ -19,48 +19,47 @@ const ConfirmacionVenta = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+    
         if (!numeroDocumento || !metodoPago) {
             setError('Todos los campos son obligatorios.');
             return;
         }
-
+    
+        const fechaVentaStr = new Date().toLocaleDateString("es-CO", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    
+        // Generación del idVenta de forma única (podría ser un UUID o similar)
+    
         const venta = {
-            productos: productosSeleccionados,
-            tipoDocumento,
+            productos: productosSeleccionados.map(producto => ({
+                id: producto._id,  // ID del producto
+                nombre: producto.nombre,
+                precio: parseFloat(producto.precio.replace(',', '')),
+                cantidad: producto.cantidad,
+                descripcion: producto.descripcion,
+                imagen: producto.imagen,
+                categoria: producto.categoria,
+                marca: producto.marca,
+                estado: producto.estado
+            })),
             numeroDocumento,
             total,
-            fechaVenta: new Date().toLocaleDateString(),
+            fechaVenta: fechaVentaStr,
             metodoPago,
             estado 
         };
-
+    
+        console.log('Productos a registrar:', venta.productos);
+    
         try {
-            // Registrar la venta
+            // Registrar la venta con el idVenta
             await axios.post('http://localhost:5000/ventas', venta);
-
-            // Actualizar la cantidad de cada producto en el inventario
-            await Promise.all(productosSeleccionados.map(async (producto) => {
-                // Obtener los datos actuales del producto
-                const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto.id}`);
-
-                // Calcular la nueva cantidad
-                const nuevaCantidad = productoActual.cantidad - producto.cantidad;
-
-                // Actualizar la cantidad del producto
-                if (nuevaCantidad < 0) {
-                    throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
-                }
-
-                await axios.put(`http://localhost:5000/productos/${producto.id}`, {
-                    ...productoActual,  // Mantener los otros campos del producto
-                    cantidad: nuevaCantidad  // Disminuir la cantidad
-                });
-            }));
-
+    
             localStorage.removeItem('productosSeleccionados');
-
-            // Mostrar alerta con SweetAlert2
+    
             Swal.fire({
                 title: 'Éxito',
                 text: 'La venta se registró correctamente.',
@@ -72,9 +71,10 @@ const ConfirmacionVenta = () => {
             });
         } catch (error) {
             setError(`Error al registrar la venta: ${error.message}`);
-            console.error('Error al registrar la venta', error);
+            console.error('Error al registrar la venta', error.response ? error.response.data : error.message);
         }
     };
+    
 
     const handleAddMoreProducts = () => {
         navigate(-1);  // Volver a la página anterior sin recargar
@@ -104,7 +104,7 @@ const ConfirmacionVenta = () => {
                         </thead>
                         <tbody>
                             {productosSeleccionados.map(producto => (
-                                <tr key={producto.id}>
+                                <tr key={producto._id}>
                                     <td className="py-4 px-4 border-b">
                                         <div className="flex items-center">
                                             <img src={producto.imagen} alt={producto.nombre} className="w-20 h-20 object-cover mr-4" />
@@ -112,7 +112,7 @@ const ConfirmacionVenta = () => {
                                         </div>
                                     </td>
                                     <td className="py-4 px-4 border-b">{producto.cantidad}</td>
-                                    <td className="py-4 px-4 border-b">${producto.precio}</td>
+                                    <td className="py-4 px-4 border-b">${parseFloat(producto.precio).toFixed(3)}</td>
                                     <td className="py-4 px-4 border-b">${(producto.precio * producto.cantidad).toFixed(3)}</td>
                                 </tr>
                             ))}
