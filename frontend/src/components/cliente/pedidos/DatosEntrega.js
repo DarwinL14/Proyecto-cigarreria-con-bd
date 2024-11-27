@@ -166,7 +166,7 @@ const DatosEntrega = () => {
             setError('Por favor, selecciona una dirección.');
             return;
         }
-
+    
         const usuarioId = localStorage.getItem('userId');
         if (usuarioId) {
             const pedido = {
@@ -190,35 +190,18 @@ const DatosEntrega = () => {
                 estadoPedido: 'pendiente',
                 estado: 'activo'
             };
-
+    
             try {
                 const response = await axios.post('http://localhost:5000/pedidos', pedido);
 
-                await Promise.all(carrito.map(async (producto) => {
-                    try {
-                        const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto._id}`);
-                        
-                        // Asegúrate de que 'productoActual' tenga la propiedad 'cantidad' y que sea un número
-                        const nuevaCantidad = productoActual.cantidad - producto.cantidad;
-                        if (nuevaCantidad < 0) {
-                            throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
-                        }
-                
-                        // Solo envía lo que necesitas actualizar
-                        const productoActualizado = {
-                            cantidad: nuevaCantidad,
-                        };
-                
-                        await axios.put(`http://localhost:5000/productos/${producto._id}`, productoActualizado);
-                    } catch (error) {
-                        console.error("Error al actualizar el producto", error.message);
-                    }
-                }));
-                
+                await enviarCorreoCajeros(pedido);
+    
+                // Limpiar el carrito y la dirección de entrega del localStorage
                 localStorage.removeItem(`carrito_${usuarioId}`);
                 localStorage.removeItem('datosCarrito');
                 localStorage.removeItem('direccionEntrega');
-
+    
+                // Redirigir al usuario a la página de confirmación
                 navigate('/confirmar', { state: { pedidoId: response.data._id } });
             } catch (error) {
                 console.error('Error al crear el pedido:', error);
@@ -226,7 +209,7 @@ const DatosEntrega = () => {
             }
         }
     };
-
+    
 
     const calcularTotal = (productos) => {
         return productos.reduce((total, producto) => total + (parseFloat(producto.precio) || 0) * producto.cantidad, 0).toFixed(3);

@@ -1,5 +1,6 @@
 const express = require('express');
 const Pedido = require('../models/Pedido'); // Aquí se importa el modelo de Pedido
+const Producto = require('../models/Producto');
 const router = express.Router();
 
 // Ruta para crear un nuevo pedido
@@ -25,6 +26,23 @@ router.post('/', async (req, res) => {
         // Guardar el pedido en la base de datos
         const pedidoGuardado = await nuevoPedido.save();
 
+        await Promise.all(productos.map(async (producto) => {
+            const productoActual = await Producto.findOne({ _id: producto.id });
+
+            if (!productoActual) {
+                throw new Error(`El producto ${producto.nombre} no existe.`);
+            }
+
+            const nuevaCantidad = productoActual.cantidad - producto.cantidad;
+
+            if (nuevaCantidad < 0) {
+                throw new Error(`No hay suficiente stock para el producto ${producto.nombre}`);
+            }
+
+            // Actualizar el producto en la base de datos
+            await Producto.findByIdAndUpdate(producto.id, { $set: { cantidad: nuevaCantidad } });
+        }));
+
         // Enviar la respuesta con el pedido guardado
         res.status(201).json(pedidoGuardado);
     } catch (error) {
@@ -34,10 +52,9 @@ router.post('/', async (req, res) => {
 });
 
 // Ruta para obtener los detalles de un pedido por su _id
-router.get('/pedidos/confirmar', async (req, res) => {
+router.get('/pedidos/confirmar/:_id', async (req, res) => {
     const { _id } = req.params;
 
-    console.log(' ID recibido:', _id);  // Verificar si el usuarioId se está recibiendo correctamente
 
 
     try {
@@ -56,7 +73,6 @@ router.get('/pedidos/confirmar', async (req, res) => {
 router.get('/pedidos', async (req, res) => {
     const { usuarioId } = req.query; // Obtienes el usuarioId de los query parameters
 
-    console.log('Usuario ID recibido:', usuarioId);  // Verificar si el usuarioId se está recibiendo correctamente
 
     try {
         // Buscar los pedidos usando el usuarioId tal cual como un string
@@ -101,5 +117,41 @@ router.get('/consulta', async (req, res) => {
         res.status(500).json({ message: 'Error al obtener las ventas' });
     }
 });
+
+router.put('/:_id/cancelar', async (req, res) => {
+    const pedidoId = req.params._id;
+
+    try {
+        // Buscar el pedido
+        const pedido = await Pedido.findById(pedidoId);
+        if (!pedido) {
+            return res.status(404).json({ message: 'Pedido no encontrado' });
+        }
+
+        // Revertir las cantidades de los productos
+        await Promise.all(pedido.productos.map(async (producto) => {
+            const productoActual = await Producto.findById(producto.id); // Cambié `producto.id` por `producto._id`
+            if (!productoActual) {
+                throw new Error(`Producto con ID ${producto.id} no encontrado`);
+            }
+
+            const nuevaCantidad = productoActual.cantidad + producto.cantidad;
+            await Producto.findByIdAndUpdate(producto.id, { cantidad: nuevaCantidad }); // Cambié `producto.id` por `producto._id`
+        }));
+
+        // Actualizar el estado del pedido
+        pedido.estadoPedido = 'cancelado';
+        pedido.estado = 'inactivo';
+        await pedido.save();
+
+        res.status(200).json({ message: 'Pedido cancelado exitosamente' });
+    } catch (error) {
+        console.error('Error al cancelar el pedido:', error.message);
+        res.status(500).json({ message: 'Error al cancelar el pedido' });
+    }
+});
+
+
+
 
 module.exports = router;

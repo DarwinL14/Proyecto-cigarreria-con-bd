@@ -78,7 +78,7 @@ const Pedidos = () => {
 
 
     const mostrarDetalles = (pedido) => {
-        setPedidoSeleccionado(pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? null : pedido);
+        setPedidoSeleccionado(pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? null : pedido);
     };
 
     const manejarCancelarPedido = (pedido) => {
@@ -88,31 +88,24 @@ const Pedidos = () => {
 
     const cancelarPedido = async () => {
         try {
-            // Sumar nuevamente las cantidades de los productos al cancelar el pedido
-            await Promise.all(pedidoACancelar.productos.map(async (producto) => {
-                const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto.id}`);
-                const productoActualizado = {
-                    ...productoActual,
-                    cantidad: productoActual.cantidad + producto.cantidad,
-                };
-                await axios.put(`http://localhost:5000/productos/${producto.id}`, productoActualizado);
-            }));
+            // Cambiar el estado del pedido a "cancelado" desde el backend
+            await axios.put(`http://localhost:5000/pedidos/${pedidoACancelar._id}/cancelar`);
     
-            // Cambiar el estado del pedido a "cancelado"
-            await axios.put(`http://localhost:5000/pedidos/${pedidoACancelar.id}`, {
-                ...pedidoACancelar,
-                estadoPedido: 'cancelado',
-                estado: 'inactivo'
-            });
-    
-            // Actualizar la lista de pedidos después de cambiar el estado
-            setPedidos(pedidos.map(pedido => pedido.id === pedidoACancelar.id ? { ...pedido, estadoPedido: 'cancelado' } : pedido));
+            // Actualizar la lista de pedidos localmente
+            setPedidos(pedidos.map(pedido => 
+                pedido._id === pedidoACancelar._id 
+                    ? { ...pedido, estadoPedido: 'cancelado', estado: 'inactivo' } 
+                    : pedido
+            ));
+            
+            // Limpiar el modal
             setMostrarModal(false);
             setPedidoACancelar(null);
         } catch (error) {
             console.error('Error al cancelar el pedido:', error);
         }
     };
+    
     
 
     const cancelarConfirmacion = () => {
@@ -155,7 +148,7 @@ const Pedidos = () => {
                     <tbody>
                     {paginatedData.length > 0 ? (
                         paginatedData.map(pedido => (
-                            <React.Fragment key={pedido.id}>
+                            <React.Fragment key={pedido._id}>
                                 <tr>
                                     <td className="py-2 px-4 border-b text-center border-gray-200">{formatearFecha(pedido.fecha)}</td>
                                     <td className="py-4 px-4 border-b text-center">${calcularTotal(pedido.productos)}</td>
@@ -165,11 +158,11 @@ const Pedidos = () => {
                                             onClick={() => mostrarDetalles(pedido)}
                                             className={`bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 ${pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? 'bg-indigo-700' : ''}`}
                                         >
-                                            {pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? 'Ocultar Detalles' : 'Ver Detalles'}
+                                            {pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? 'Ocultar Detalles' : 'Ver Detalles'}
                                         </button>
                                     </td>
                                 </tr>
-                                {pedidoSeleccionado && pedidoSeleccionado.id === pedido.id && (
+                                {pedidoSeleccionado && pedidoSeleccionado._id === pedido._id && (
                                     <tr>
                                         <td colSpan="4" className="py-4 px-4 border-b bg-gray-100">
                                             <h2 className="text-xl font-semibold mb-2">Detalles del Pedido</h2>
