@@ -32,14 +32,13 @@ const DomiciliarioDashboard = () => {
 
         const fetchPedidos = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/pedidos');
-                // Obtener todos los pedidos asignados al usuario
-                const pedidosAsignados = response.data.filter(pedido => pedido.asignado === userId);
-                setPedidos(pedidosAsignados);
+                const response = await axios.get(`http://localhost:5000/pedidos/asignados/${userId}`);
+                setPedidos(response.data);
             } catch (error) {
                 console.error('Error al obtener los pedidos:', error);
             }
         };
+        
 
         fetchPedidos();
     }, []);
@@ -111,32 +110,54 @@ const DomiciliarioDashboard = () => {
     };
 
     const confirmarEntrega = async () => {
+        if (!pedidoAConfirmar) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se ha seleccionado un pedido para confirmar.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+    
         try {
-            await axios.patch(`http://localhost:5000/pedidos/${pedidoAConfirmar.id}`, {
+            // Actualizar el estado del pedido en el servidor
+            const response = await axios.patch(`http://localhost:5000/pedidos/estadoPedido/${pedidoAConfirmar._id}`, {
                 estadoPedido: 'entregado'
             });
+    
+            // Actualizar el estado localmente
             setPedidos(pedidos.map(pedido =>
-                pedido.id === pedidoAConfirmar.id ? { ...pedido, estadoPedido: 'entregado' } : pedido
+                pedido._id === pedidoAConfirmar._id
+                    ? { ...pedido, estadoPedido: 'entregado' }
+                    : pedido
             ));
+    
+            // Limpiar selección
             setPedidoAConfirmar(null);
+    
+            // Mostrar alerta de éxito
             Swal.fire({
                 title: 'Pedido entregado',
                 text: 'El estado del pedido ha sido actualizado a "entregado".',
                 icon: 'success',
                 confirmButtonText: 'OK'
             });
-
-            // Enviar correo de confirmación
+    
+            // Enviar correo de confirmación usando EmailJS
             await emailjs.send('service_vlpu06s', 'template_2lgkzzq', {
                 to_correo: pedidoAConfirmar.correo,
                 customer_name: pedidoAConfirmar.nombre,
                 delivery_date: formatFecha(new Date()),
-                products: pedidoAConfirmar.productos.map(p => `${p.nombre} - ${p.precio} x ${p.cantidad}`).join(" --- "),
+                products: pedidoAConfirmar.productos
+                    .map(p => `${p.nombre} - ${p.precio} x ${p.cantidad}`)
+                    .join(" --- "),
                 total: calcularTotal(pedidoAConfirmar.productos)
             }, 'JS01zy1f3DQ02Ojb0');
-
+    
         } catch (error) {
             console.error('Error al actualizar el estado del pedido:', error);
+    
             Swal.fire({
                 title: 'Error',
                 text: 'Hubo un problema al actualizar el estado del pedido.',
@@ -145,9 +166,10 @@ const DomiciliarioDashboard = () => {
             });
         }
     };
+    
 
     const mostrarDetalles = (pedido) => {
-        setPedidoSeleccionado(pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? null : pedido);
+        setPedidoSeleccionado(pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? null : pedido);
     };
 
     return (
@@ -207,7 +229,7 @@ const DomiciliarioDashboard = () => {
                             <tbody>
                             {paginatedData.length > 0 ? (
                                 paginatedData.map(pedido => (
-                                        <React.Fragment key={pedido.id}>
+                                        <React.Fragment key={pedido._id}>
                                             <tr>
                                                 <td className="py-2 px-4 border-b">{pedido.nombre}</td>
                                                 <td className="py-2 px-4 border-b border-gray-200">{formatearFecha(pedido.fecha)}</td>
@@ -226,11 +248,11 @@ const DomiciliarioDashboard = () => {
                                                         onClick={() => mostrarDetalles(pedido)}
                                                         className={`ml-2 bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 ${pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? 'bg-blue-600' : ''}`}
                                                     >
-                                                        {pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? 'Ocultar Detalles' : 'Detalles'}
+                                                        {pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? 'Ocultar Detalles' : 'Detalles'}
                                                     </button>
                                                 </td>
                                             </tr>
-                                            {pedidoSeleccionado && pedidoSeleccionado.id === pedido.id && (
+                                            {pedidoSeleccionado && pedidoSeleccionado._id === pedido._id && (
                                                 <tr>
                                                     <td colSpan="5" className="bg-gray-100 p-4 border-b">
                                                         <h2 className="text-xl font-semibold mb-2">Detalles del Pedido</h2>

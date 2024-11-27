@@ -183,6 +183,41 @@ router.put('/:_id', async (req, res) => {
       res.status(500).send('Error al asignar domiciliario');
     }
   });
+
+  // Ruta para obtener pedidos asignados a un usuario específico
+router.get('/asignados/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const pedidos = await Pedido.find({ asignado: userId });
+        res.status(200).json(pedidos);
+    } catch (error) {
+        console.error('Error al obtener pedidos:', error);
+        res.status(500).json({ message: 'Error al obtener pedidos' });
+    }
+});
+
+// Ruta para actualizar el estado del pedido
+router.patch('/estadoPedido/:_id', async (req, res) => {
+    const { _id } = req.params;
+    const { estadoPedido } = req.body;
+
+    try {
+        const pedidoActualizado = await Pedido.findByIdAndUpdate(
+            _id,
+            { estadoPedido },
+            { new: true } // Devuelve el documento actualizado
+        );
+
+        if (!pedidoActualizado) {
+            return res.status(404).json({ message: 'Pedido no encontrado' });
+        }
+
+        res.status(200).json(pedidoActualizado);
+    } catch (error) {
+        console.error('Error al actualizar el pedido:', error);
+        res.status(500).json({ message: 'Error al actualizar el pedido' });
+    }
+});
   
   
 
