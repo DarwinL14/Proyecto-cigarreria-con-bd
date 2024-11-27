@@ -28,8 +28,8 @@ const Inicio = () => {
     useEffect(() => {
         const fetchDatos = async () => {
             try {
-                const productosResponse = await axios.get('http://localhost:5000/productos');
-                const pedidosResponse = await axios.get('http://localhost:5000/pedidos');
+                const productosResponse = await axios.get('http://localhost:5000/productos/consulta');
+                const pedidosResponse = await axios.get('http://localhost:5000/pedidos/consulta');
 
                 const productosActivos = productosResponse.data.filter(producto => producto.estado === 'activo');
                 setProductos(productosActivos);
@@ -38,13 +38,13 @@ const Inicio = () => {
                 const conteoProductos = {};
                 pedidosResponse.data.forEach(pedido => {
                     pedido.productos.forEach(producto => {
-                        if (!conteoProductos[producto.id]) {
-                            conteoProductos[producto.id] = {
+                        if (!conteoProductos[producto._id]) {
+                            conteoProductos[producto._id] = {
                                 ...producto,
                                 cantidadTotal: 0
                             };
                         }
-                        conteoProductos[producto.id].cantidadTotal += producto.cantidad;
+                        conteoProductos[producto._id].cantidadTotal += producto.cantidad;
                     });
                 });
 
@@ -106,7 +106,7 @@ const Inicio = () => {
                     {productosMasVendidos.length > 0 ? (
                         productosMasVendidos.map(producto => (
                             <div
-                                key={producto.id}
+                                key={producto._id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
                                 <div className="w-full h-64 relative flex-shrink-0">
@@ -122,7 +122,7 @@ const Inicio = () => {
                                     </div>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        onClick={() => handleDetallesProductoSinLoggear(producto.id)}
+                                        onClick={() => handleDetallesProductoSinLoggear(producto._id)}
                                     >
                                         Ver más
                                     </button>
@@ -164,7 +164,7 @@ const Inicio = () => {
                     {filteredProducts.length > 0 ? (
                         filteredProducts.map(producto => (
                             <div
-                                key={producto.id}
+                                key={producto._id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105"
                             >
                                 <div className="w-full h-64 relative">
@@ -178,7 +178,7 @@ const Inicio = () => {
                                     <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        onClick={() => handleDetallesProductoSinLoggear(producto.id)}
+                                        onClick={() => handleDetallesProductoSinLoggear(producto._id)}
                                     >
                                         Ver más
                                     </button>
