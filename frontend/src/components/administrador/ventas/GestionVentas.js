@@ -15,7 +15,7 @@ const GestionVentas = () => {
 
     const fetchVentas = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:5000/ventas');
+            const response = await axios.get('http://localhost:5000/ventas/consulta');
             setVentas(response.data);
         } catch (error) {
             console.error('Error al obtener las ventas:', error);
@@ -28,19 +28,16 @@ const GestionVentas = () => {
 
     useEffect(() => {
         const filtered = ventas.filter(venta => {
-            // Convierte la fecha que deseas buscar al formato adecuado
             const fechaBuscada = '2024-10-20'; // Cambia esto al formato correspondiente si es necesario
-    
             return (
                 (mostrarInactivas ? venta.estado === 'inactivo' : venta.estado === 'activo') &&
                 (venta.numeroDocumento.toLowerCase().includes(filterInput.toLowerCase()) ||
-                venta.fechaVenta === fechaBuscada || // Compara directamente con la fecha
+                venta.fechaVenta === fechaBuscada ||
                 venta.fechaVenta.toLowerCase().includes(filterInput.toLowerCase()))
             );
         });
         setFilteredVentas(filtered);
     }, [filterInput, ventas, mostrarInactivas]);
-    
 
     const handleFilterChange = e => {
         setFilterInput(e.target.value || '');
@@ -64,27 +61,14 @@ const GestionVentas = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const productos = venta.productos;
-
-                    // Devolver la cantidad de los productos al inventario
-                    await Promise.all(productos.map(async (producto) => {
-                        const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto.id}`);
-                        const nuevaCantidad = productoActual.cantidad + producto.cantidad;
-                        await axios.put(`http://localhost:5000/productos/${producto.id}`, {
-                            ...productoActual,
-                            cantidad: nuevaCantidad
-                        });
-                    }));
-
-                    // Cambiar el estado de la venta a 'inactivo'
-                    await axios.put(`http://localhost:5000/ventas/${venta.id}`, {
-                        ...venta,
-                        estado: 'inactivo'
+                    // Llamada a la ruta del backend para inactivar la venta y actualizar el stock
+                    await axios.put(`http://localhost:5000/ventas/${venta._id}/inactivar`, {
+                        productos: venta.productos
                     });
-
+    
                     // Actualizar la lista de ventas
                     fetchVentas();
-
+    
                     Swal.fire(
                         '¡Venta inactivada!',
                         'La venta ha sido cambiada a estado inactivo.',
@@ -101,48 +85,23 @@ const GestionVentas = () => {
             }
         });
     };
-
-    const manejarReactivarVenta = async (venta) => {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Cambiar el estado de esta venta a activo.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, reactivar',
-            cancelButtonText: 'Cancelar'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    // Cambiar el estado de la venta a 'activo'
-                    await axios.put(`http://localhost:5000/ventas/${venta.id}`, {
-                        ...venta,
-                        estado: 'activo'
-                    });
-
-                    // Actualizar la lista de ventas
-                    fetchVentas();
-
-                    Swal.fire(
-                        '¡Venta reactivada!',
-                        'La venta ha sido cambiada a estado activo.',
-                        'success'
-                    );
-                } catch (error) {
-                    console.error('Error al reactivar la venta:', error);
-                    Swal.fire(
-                        'Error',
-                        'Hubo un error al intentar reactivar la venta.',
-                        'error'
-                    );
-                }
-            }
-        });
+    
+    const ColumnFilter = ({
+        column: { filterValue, preFilteredRows, setFilter },
+    }) => {
+        const count = preFilteredRows.length;
+        return (
+            <input
+                value={filterValue || ''}
+                onChange={e => setFilter(e.target.value || undefined)}
+                placeholder={`Buscar ${count} registros...`}
+                className="border p-1 rounded"
+            />
+        );
     };
 
     const mostrarDetalles = (venta) => {
-        setVentaSeleccionada(ventaSeleccionada && ventaSeleccionada.id === venta.id ? null : venta);
+        setVentaSeleccionada(ventaSeleccionada && ventaSeleccionada._id === venta._id ? null : venta);
     };
 
     const columns = React.useMemo(
@@ -173,7 +132,7 @@ const GestionVentas = () => {
                                     onClick={() => mostrarDetalles(row.original)}
                                     className={`bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 ${ventaSeleccionada && ventaSeleccionada.id === row.original.id ? 'bg-blue-600' : ''}`}
                                 >
-                                    {ventaSeleccionada && ventaSeleccionada.id === row.original.id ? 'Ocultar Detalles' : 'Detalles'}
+                                    {ventaSeleccionada && ventaSeleccionada._id === row.original._id ? 'Ocultar Detalles' : 'Detalles'}
                                 </button>
                                 <button
                                     onClick={() => manejarEliminarVenta(row.original)}
@@ -184,10 +143,10 @@ const GestionVentas = () => {
                             </>
                         ) : (
                             <button
-                                onClick={() => manejarReactivarVenta(row.original)}
-                                className="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
+                                onClick={() => mostrarDetalles(row.original)}
+                                className="bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600"
                             >
-                                Reactivar
+                                Detalles
                             </button>
                         )}
                     </div>
@@ -224,7 +183,7 @@ const GestionVentas = () => {
     return (
         <div className="container mx-auto px-4 my-8">
             <h1 className="text-3xl font-bold mb-4 text-center">Gestión de Ventas</h1>
-            <p className="mb-4 text-center">Aquí puedes gestionar las ventas registradas en el sistema. Puedes ver detalles de cada venta, así como inactivar o reactivar ventas si es necesario.</p>
+            <p className="mb-4 text-center">Aquí puedes gestionar las ventas registradas en el sistema. Puedes ver detalles de cada venta, así como inactivar ventas si es necesario.</p>
             <div className="mb-4 flex space-x-4 place-content-center">
                 <button
                     onClick={() => navigate('/registro-venta')}
@@ -260,7 +219,7 @@ const GestionVentas = () => {
                         {page.map(row => {
                             prepareRow(row);
                             return (
-                                <React.Fragment key={row.id}>
+                                <React.Fragment key={row._id}>
                                     <tr {...row.getRowProps()} className="bg-white hover:bg-gray-100">
                                         {row.cells.map(cell => (
                                             <td {...cell.getCellProps()} className="border p-2 text-black text-center">
@@ -268,7 +227,7 @@ const GestionVentas = () => {
                                             </td>
                                         ))}
                                     </tr>
-                                    {ventaSeleccionada && ventaSeleccionada.id === row.original.id && (
+                                    {ventaSeleccionada && ventaSeleccionada._id === row.original._id && (
                                         <tr>
                                             <td colSpan="5" className="py-4 px-4 border-b bg-gray-100">
                                                 <div>
@@ -281,13 +240,13 @@ const GestionVentas = () => {
                                                         {ventaSeleccionada.productos.map((producto, index) => (
                                                             <li key={index} className="flex items-center mb-2">
                                                                 {producto.imagen && (
-                                                                    <img src={producto.imagen} alt={producto.nombre} className="w-16 h-16 object-cover mr-2" />
+                                                                    <img src={producto.imagen} alt={producto.nombre} className="w-16 h-16 object-cover mr-4" />
                                                                 )}
-                                                                <p>{producto.nombre} - ${producto.precio} x {producto.cantidad}</p>
+                                                                <span>{producto.nombre} - {producto.cantidad} x ${producto.precio}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
-                                                    <p className="font-bold mt-2">Total: ${calcularTotal(ventaSeleccionada.productos)}</p>
+                                                    <p><strong>Total:</strong> ${calcularTotal(ventaSeleccionada.productos)}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -296,58 +255,31 @@ const GestionVentas = () => {
                             );
                         })}
                     </tbody>
-            </table>
-
+                </table>
             </div>
 
-            <div className="mt-4 flex justify-between items-center">
-                <button
-                    onClick={() => gotoPage(0)}
-                    disabled={!canPreviousPage}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
+            <div className="flex justify-between mt-4">
+                <button onClick={() => gotoPage(0)} disabled={!canPreviousPage} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
                     {'<<'}
                 </button>
-                <button
-                    onClick={() => previousPage()}
-                    disabled={!canPreviousPage}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
+                <button onClick={() => previousPage()} disabled={!canPreviousPage} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
                     {'<'}
                 </button>
-                <span className="text-gray-700">
-                    Página {pageIndex + 1} de {pageOptions.length}
+                <span>
+                    Página{' '}
+                    <strong>
+                        {pageIndex + 1} de {pageOptions.length}
+                    </strong>{' '}
                 </span>
-                <button
-                    onClick={() => nextPage()}
-                    disabled={!canNextPage}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
+                <button onClick={() => nextPage()} disabled={!canNextPage} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
                     {'>'}
                 </button>
-                <button
-                    onClick={() => gotoPage(pageOptions.length - 1)}
-                    disabled={!canNextPage}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
+                <button onClick={() => gotoPage(pageOptions.length - 1)} disabled={!canNextPage} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
                     {'>>'}
                 </button>
             </div>
         </div>
     );
-};
-
-const ColumnFilter = ({ column: { filterValue, preFilteredRows, setFilter } }) => {
-    const count = preFilteredRows.length;
-
-    return (
-        <input
-            value={filterValue || ''}
-            onChange={(e) => setFilter(e.target.value || undefined)}
-            placeholder={`Buscar (${count})`}
-            className="border border-gray-300 p-1 rounded text-black"
-        />
-    );
-};
+}
 
 export default GestionVentas;
