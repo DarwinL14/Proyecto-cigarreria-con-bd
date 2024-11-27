@@ -47,6 +47,11 @@ const pedidoSchema = new mongoose.Schema({
   estado: {
     type: String,
     default: 'activo'
+  },
+  asignado: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usuario',  // Referencia al modelo de Usuario (sin importar si es cliente, tienda, o domiciliario)
+    required: false  // No es obligatorio, solo se asigna cuando es necesario
   }
 });
 

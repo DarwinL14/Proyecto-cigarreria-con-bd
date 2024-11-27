@@ -32,13 +32,14 @@ const PedidosCajero = () => {
 
     const fetchDomiciliarios = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/usuarios?rol=domiciliario');
+        // Asegúrate de que la URL sea la correcta y que el servidor esté en funcionamiento
+        const response = await axios.get('http://localhost:5000/usuarios/domiciliario?rol=domiciliario');
         setDomiciliarios(response.data);
       } catch (error) {
         console.error('Error al obtener los domiciliarios:', error);
       }
     };
-
+  
     fetchPedidos();
     fetchDomiciliarios();
   }, []);
@@ -103,30 +104,40 @@ const lastPage = () => {
       confirmButtonText: 'Asignar',
       confirmButtonColor: 'blue',
       cancelButtonColor: 'red',
-
     });
-
-    if (domiciliarioId) {
-      try {
-        const domiciliario = domiciliarios.find(dom => dom._id === domiciliarioId);
-
-        await axios.put(`http://localhost:5000/pedidos/${pedido._id}`, {
-          ...pedido,
-          asignado: domiciliarioId,
-        });
-
+  
+    // Verifica si el usuario no seleccionó ningún domiciliario
+    if (!domiciliarioId) {
+      Swal.fire({
+        title: '¡Error!',
+        text: 'Debes seleccionar un domiciliario para asignar el pedido.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return; // Sale de la función si no se selecciona un domiciliario
+    }
+  
+    try {
+      const domiciliario = domiciliarios.find(dom => dom._id === domiciliarioId);
+  
+      const response = await axios.put(`http://localhost:5000/pedidos/${pedido._id}`, {
+        asignado: domiciliarioId, // Solo se pasa el ID del domiciliario
+      });
+  
+      if (response.status === 200) {
         // Enviar correo al domiciliario asignado
         await enviarCorreoDomiciliario(pedido, domiciliario);
-
         Swal.fire('Asignado', 'El pedido ha sido asignado correctamente', 'success');
-        
-      } catch (error) {
-        console.error('Error al asignar domiciliario:', error);
-        Swal.fire('Error', 'Hubo un error al asignar el domiciliario', 'error');
       }
+    } catch (error) {
+      console.error('Error al asignar domiciliario:', error);
+      Swal.fire('Error', 'Hubo un error al asignar el domiciliario', 'error');
     }
-    window.location.reload();
+  
+    window.location.reload();  // Recarga la página después de asignar
   };
+  
+
 
   const enviarCorreoDomiciliario = async (pedido, domiciliario) => {
     try {

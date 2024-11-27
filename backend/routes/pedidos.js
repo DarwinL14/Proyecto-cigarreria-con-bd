@@ -1,6 +1,8 @@
 const express = require('express');
 const Pedido = require('../models/Pedido'); // Aquí se importa el modelo de Pedido
 const Producto = require('../models/Producto');
+const Usuario = require('../models/Usuario');  // O la ruta correcta a tu modelo de Usuario
+
 const router = express.Router();
 
 // Ruta para crear un nuevo pedido
@@ -151,6 +153,38 @@ router.put('/:_id/cancelar', async (req, res) => {
     }
 });
 
+// Ruta para actualizar el estado de un pedido (asignar domiciliario)// Ruta para actualizar el estado de un pedido (asignar domiciliario)
+router.put('/:_id', async (req, res) => {
+    try {
+      const { _id } = req.params;  // ID del pedido
+      const { asignado } = req.body;  // ID del domiciliario (Usuario)
+  
+      // Verificamos que el usuario asignado sea un domiciliario
+      const usuario = await Usuario.findById(asignado);
+  
+      if (!usuario || usuario.rol !== 'domiciliario') {
+        return res.status(400).send('El usuario asignado no es un domiciliario válido');
+      }
+  
+      // Actualizamos el pedido con el domiciliario asignado
+      const pedido = await Pedido.findByIdAndUpdate(
+        _id, 
+        { asignado },  // Asignamos el ID del domiciliario
+        { new: true }   // Devolvemos el pedido actualizado
+      );
+  
+      if (!pedido) {
+        return res.status(404).send('Pedido no encontrado');
+      }
+  
+      res.json(pedido);  // Respondemos con el pedido actualizado
+    } catch (error) {
+      console.error('Error al asignar domiciliario:', error);
+      res.status(500).send('Error al asignar domiciliario');
+    }
+  });
+  
+  
 
 
 

@@ -18,7 +18,7 @@ const PedidosAdmin = () => {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/pedidos');
+        const response = await axios.get('http://localhost:5000/pedidos/consulta');
         setPedidos(response.data);
       } catch (error) {
         console.error('Error al obtener los pedidos:', error);
@@ -99,7 +99,7 @@ const PedidosAdmin = () => {
         
 
   const mostrarDetalles = (pedido) => {
-    setPedidoSeleccionado(pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? null : pedido);
+    setPedidoSeleccionado(pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? null : pedido);
   };
 
   const formatearFecha = (fecha) => {
@@ -157,9 +157,9 @@ const PedidosAdmin = () => {
         <div className="flex gap-2">
           <button
             onClick={() => mostrarDetalles(row.original)}
-            className={`bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 ${pedidoSeleccionado && pedidoSeleccionado.id === row.original.id ? 'bg-blue-600' : ''}`}
+            className={`bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 ${pedidoSeleccionado && pedidoSeleccionado._id === row.original._id ? 'bg-blue-600' : ''}`}
           >
-            {pedidoSeleccionado && pedidoSeleccionado.id === row.original.id ? 'Ocultar Detalles' : 'Detalles'}
+            {pedidoSeleccionado && pedidoSeleccionado.id === row.original._id ? 'Ocultar Detalles' : 'Detalles'}
           </button>
           {row.original.estadoPedido === 'pendiente' && (
             <button
@@ -278,7 +278,7 @@ const PedidosAdmin = () => {
     page.map(row => {
       prepareRow(row);
       return (
-        <React.Fragment key={row.id}>
+        <React.Fragment key={row._id}>
           <tr {...row.getRowProps()} className="border-b border-gray-200">
             <td className="p-4">{row.original.nombre}</td>
             <td className="p-4">{formatearFecha(row.original.fecha)}</td>
@@ -289,7 +289,7 @@ const PedidosAdmin = () => {
                 onClick={() => mostrarDetalles(row.original)}
                 className={`bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 ${pedidoSeleccionado && pedidoSeleccionado.id === row.original.id ? 'bg-blue-600' : ''}`}
               >
-                {pedidoSeleccionado && pedidoSeleccionado.id === row.original.id ? 'Ocultar Detalles' : 'Detalles'}
+                {pedidoSeleccionado && pedidoSeleccionado._id === row.original._id ? 'Ocultar Detalles' : 'Detalles'}
               </button>
               {row.original.estadoPedido === 'pendiente' && (
                 <button
@@ -301,7 +301,7 @@ const PedidosAdmin = () => {
               )}
             </td>
           </tr>
-          {pedidoSeleccionado && pedidoSeleccionado.id === row.original.id && (
+          {pedidoSeleccionado && pedidoSeleccionado._id === row.original._id && (
             <tr>
               <td colSpan="5" className="p-4 bg-gray-100">
                 <h2 className="text-xl font-semibold mb-2">Detalles del Pedido</h2>

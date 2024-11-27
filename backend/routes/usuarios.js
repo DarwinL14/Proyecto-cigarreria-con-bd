@@ -281,6 +281,23 @@ router.get('/cajeros', async (req, res) => {
     }
 });
 
+router.get('/domiciliario', async (req, res) => {
+    try {
+      const rol = req.query.rol;  // Se pasa el rol como query param
+      const usuarios = await Usuario.find({ rol: rol });
+  
+      if (!usuarios) {
+        return res.status(404).send('No se encontraron usuarios');
+      }
+  
+      res.json(usuarios);
+    } catch (error) {
+      console.error('Error al obtener los domiciliarios:', error);
+      res.status(500).send('Error al obtener los domiciliarios');
+    }
+  });
+  
+
 
 
 
