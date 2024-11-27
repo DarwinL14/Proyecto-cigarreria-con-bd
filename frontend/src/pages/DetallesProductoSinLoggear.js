@@ -17,7 +17,7 @@ const DetalleProductoSinLoggear = () => {
     useEffect(() => {
         const fetchProducto = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/productos/${id}`);
+                const response = await axios.get(`http://localhost:5000/productos/consulta/${id}`);
                 setProducto(response.data);
                 setPrecioTotal(response.data.precio); // Inicializa el precio total
             } catch (error) {
