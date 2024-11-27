@@ -15,7 +15,7 @@ const GestionVentas = () => {
 
     const fetchVentas = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:5000/ventas');
+            const response = await axios.get('http://localhost:5000/ventas/consulta');
             setVentas(response.data);
         } catch (error) {
             console.error('Error al obtener las ventas:', error);
@@ -45,47 +45,10 @@ const GestionVentas = () => {
     };
 
 
-    const manejarReactivarVenta = async (venta) => {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Cambiar el estado de esta venta a activo.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, reactivar',
-            cancelButtonText: 'Cancelar'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    // Cambiar el estado de la venta a 'activo'
-                    await axios.put(`http://localhost:5000/ventas/${venta.id}`, {
-                        ...venta,
-                        estado: 'activo'
-                    });
-
-                    // Actualizar la lista de ventas
-                    fetchVentas();
-
-                    Swal.fire(
-                        '¡Venta reactivada!',
-                        'La venta ha sido cambiada a estado activo.',
-                        'success'
-                    );
-                } catch (error) {
-                    console.error('Error al reactivar la venta:', error);
-                    Swal.fire(
-                        'Error',
-                        'Hubo un error al intentar reactivar la venta.',
-                        'error'
-                    );
-                }
-            }
-        });
-    };
+    
 
     const mostrarDetalles = (venta) => {
-        setVentaSeleccionada(ventaSeleccionada && ventaSeleccionada.id === venta.id ? null : venta);
+        setVentaSeleccionada(ventaSeleccionada && ventaSeleccionada._id === venta._id ? null : venta);
     };
 
     const columns = React.useMemo(
@@ -110,22 +73,15 @@ const GestionVentas = () => {
                 Header: 'Acciones',
                 Cell: ({ row }) => (
                     <div className="flex space-x-2 justify-center">
-                        {row.original.estado === 'activo' ? (
+                        {row.original.estado === 'activo' && (
                             <>
                                 <button
                                     onClick={() => mostrarDetalles(row.original)}
-                                    className={`bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 ${ventaSeleccionada && ventaSeleccionada.id === row.original.id ? 'bg-blue-600' : ''}`}
+                                    className={`bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 ${ventaSeleccionada && ventaSeleccionada._id === row.original._id ? 'bg-blue-600' : ''}`}
                                 >
-                                    {ventaSeleccionada && ventaSeleccionada.id === row.original.id ? 'Ocultar Detalles' : 'Detalles'}
+                                    {ventaSeleccionada && ventaSeleccionada._id === row.original._id ? 'Ocultar Detalles' : 'Detalles'}
                                 </button>
                             </>
-                        ) : (
-                            <button
-                                onClick={() => manejarReactivarVenta(row.original)}
-                                className="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
-                            >
-                                Reactivar
-                            </button>
                         )}
                     </div>
                 )
@@ -191,7 +147,7 @@ const GestionVentas = () => {
                         {page.map(row => {
                             prepareRow(row);
                             return (
-                                <React.Fragment key={row.id}>
+                                <React.Fragment key={row._id}>
                                     <tr {...row.getRowProps()} className="bg-white hover:bg-gray-100">
                                         {row.cells.map(cell => (
                                             <td {...cell.getCellProps()} className="border p-2 text-black text-center">
@@ -199,7 +155,7 @@ const GestionVentas = () => {
                                             </td>
                                         ))}
                                     </tr>
-                                    {ventaSeleccionada && ventaSeleccionada.id === row.original.id && (
+                                    {ventaSeleccionada && ventaSeleccionada._id === row.original._id && (
                                         <tr>
                                             <td colSpan="5" className="py-4 px-4 border-b bg-gray-100">
                                                 <div>

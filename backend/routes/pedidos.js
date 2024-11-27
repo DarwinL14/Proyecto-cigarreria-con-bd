@@ -92,6 +92,14 @@ router.get('/pedidos', async (req, res) => {
 //     }
 // });
 
-
+// Nueva ruta para obtener todos los pedidos
+router.get('/consulta', async (req, res) => {
+    try {
+        const pedidos = await Pedido.find();
+        res.json(pedidos);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener las ventas' });
+    }
+});
 
 module.exports = router;

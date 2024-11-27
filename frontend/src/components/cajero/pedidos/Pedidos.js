@@ -22,7 +22,7 @@ const PedidosCajero = () => {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/pedidos');
+        const response = await axios.get('http://localhost:5000/pedidos/consulta');
         const pedidosPendientes = response.data.filter(pedido => pedido.estadoPedido === 'pendiente');
         setPedidos(pedidosPendientes);
       } catch (error) {
@@ -87,7 +87,7 @@ const lastPage = () => {
 
 
   const mostrarDetalles = (pedido) => {
-    setPedidoSeleccionado(pedidoSeleccionado?.id === pedido.id ? null : pedido);
+    setPedidoSeleccionado(pedidoSeleccionado?._id === pedido._id ? null : pedido);
   };
 
   const asignarPedido = async (pedido) => {
@@ -95,7 +95,7 @@ const lastPage = () => {
       title: 'Selecciona un domiciliario',
       input: 'select',
       inputOptions: domiciliarios.reduce((acc, domiciliario) => {
-        acc[domiciliario.id] = domiciliario.nombre;
+        acc[domiciliario._id] = domiciliario.nombre;
         return acc;
       }, {}),
       inputPlaceholder: 'Selecciona un domiciliario',
@@ -108,9 +108,9 @@ const lastPage = () => {
 
     if (domiciliarioId) {
       try {
-        const domiciliario = domiciliarios.find(dom => dom.id === domiciliarioId);
+        const domiciliario = domiciliarios.find(dom => dom._id === domiciliarioId);
 
-        await axios.put(`http://localhost:5000/pedidos/${pedido.id}`, {
+        await axios.put(`http://localhost:5000/pedidos/${pedido._id}`, {
           ...pedido,
           asignado: domiciliarioId,
         });
@@ -197,7 +197,7 @@ const lastPage = () => {
         <tbody>
           {paginatedData.length > 0 ? (
             paginatedData.map(pedido => (
-              <React.Fragment key={pedido.id}>
+              <React.Fragment key={pedido._id}>
                 <tr>
                   <td className="py-2 px-4 border-b border-gray-200">{pedido.nombre}</td>
                   <td className="py-2 px-4 border-b border-gray-200">{formatearFecha(pedido.fecha)}</td>
@@ -206,9 +206,9 @@ const lastPage = () => {
                   <td className="py-2 px-4 border-b border-gray-200">
                     <button
                       onClick={() => mostrarDetalles(pedido)}
-                      className={`bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 ${pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? 'bg-blue-600' : ''}`}
+                      className={`bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 ${pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? 'bg-blue-600' : ''}`}
                     >
-                      {pedidoSeleccionado && pedidoSeleccionado.id === pedido.id ? 'Ocultar Detalles' : 'Detalles'}
+                      {pedidoSeleccionado && pedidoSeleccionado._id === pedido._id ? 'Ocultar Detalles' : 'Detalles'}
                     </button>
                     <button
                       onClick={() => asignarPedido(pedido)}
@@ -218,7 +218,7 @@ const lastPage = () => {
                     </button>
                   </td>
                 </tr>
-                {pedidoSeleccionado && pedidoSeleccionado.id === pedido.id && (
+                {pedidoSeleccionado && pedidoSeleccionado._id === pedido._id && (
                   <tr>
                     <td colSpan="5" className="p-4 bg-gray-100 border-b border-gray-200">
                       <div>
