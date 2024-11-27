@@ -232,7 +232,7 @@ const encriptarContrasena = (contrasena) => {
 
 // Ruta para actualizar la contraseña del usuario
 // Ruta para actualizar la contraseña
-app.put('/usuarios/actualizar', async (req, res) => {
+router.put('/actualizar', async (req, res) => {
     const { correo, nuevaContrasena } = req.body; // Recibe el correo y la nueva contraseña
 
     if (!correo || !nuevaContrasena) {
