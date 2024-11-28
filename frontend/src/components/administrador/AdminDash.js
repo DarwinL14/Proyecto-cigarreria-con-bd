@@ -22,7 +22,7 @@ const AdminDashboard = () => {
         const fetchProducts = async () => {
             try {
                 // Consulta a la API de json-server
-                const response = await axios.get('http://localhost:5000/productos');
+                const response = await axios.get('http://localhost:5000/productos/consulta');
                 const products = response.data;
 
                 // Filtra los productos con cantidad menor a 20
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
                             <h3 className="text-lg font-bold">Alerta de Producto Agotado</h3>
                             <ul className="mb-4">
                                 {outOfStockAlerts.map((product) => (
-                                    <li key={product.id} className="mb-2">
+                                    <li key={product._id} className="mb-2">
                                         <strong>{product.nombre}</strong> - Se ha agotado. El estado ha sido cambiado a inactivo.
                                         Es recomendable agregar más cantidad de este producto.
                                     </li>
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
                             <h3 className="text-lg font-bold">Alerta de Stock Bajo</h3>
                             <ul className="mb-4">
                                 {lowStockProducts.map((product) => (
-                                    <li key={product.id} className="mb-2">
+                                    <li key={product._id} className="mb-2">
                                         <strong>{product.nombre}</strong> - Stock bajo ({product.cantidad})
                                     </li>
                                 ))}

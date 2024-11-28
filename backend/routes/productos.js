@@ -47,9 +47,9 @@ router.put('/estado/:id', async (req, res) => {
     }
 });
 
-router.put('/productos/:id', async (req, res) => {
+router.put('/stock/:id', async (req, res) => {
     const { id } = req.params;
-    const { cantidad } = req.body; // Esperamos que la cantidad que se va a restar venga en el body de la solicitud
+    const { cantidad } = req.body;
 
     try {
         // Buscar el producto por su ID
@@ -59,23 +59,39 @@ router.put('/productos/:id', async (req, res) => {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
 
-        // Asegúrate de que la cantidad no sea negativa
-        if (producto.cantidad < cantidad) {
-            return res.status(400).json({ message: 'No hay suficiente stock para este producto' });
-        }
-
-        // Actualizar la cantidad del producto
-        producto.cantidad -= cantidad;
+        // Actualizar la cantidad del producto sin restricción
+        producto.cantidad += cantidad;
 
         // Guardar el producto actualizado
         await producto.save();
 
-        return res.status(200).json(producto); // Respondemos con el producto actualizado
+        return res.status(200).json({
+            message: `Stock actualizado con éxito. Nueva cantidad: ${producto.cantidad}`,
+            producto
+        });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Hubo un error al actualizar el producto' });
+        console.error('Error al actualizar el stock:', error);
+        return res.status(500).json({ message: 'Error al actualizar el stock', error });
     }
 });
 
+
+// Actualizar datos completos del producto por ID
+router.put('/actualizar/:id', async (req, res) => {
+    try {
+        const producto = await Producto.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true } // new devuelve el producto actualizado, runValidators aplica las validaciones del modelo.
+        );
+        if (!producto) {
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+        res.json({ message: 'Producto actualizado con éxito', producto });
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+        res.status(500).json({ message: 'Error al actualizar el producto', error });
+    }
+});
 
 module.exports = router;

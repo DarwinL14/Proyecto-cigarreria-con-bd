@@ -32,11 +32,34 @@ const ClienteDashboard = () => {
         const fetchDatos = async () => {
             try {
                 const { data: productosData } = await axios.get('http://localhost:5000/productos/consulta');
+                const pedidosResponse = await axios.get('http://localhost:5000/pedidos/consulta');
     
                 const productosActivos = productosData.filter(producto => producto.estado === 'activo');
                 setProductos(productosActivos);
-    
                 setFilteredProducts(productosActivos);
+
+                // Contar la cantidad total vendida de cada producto
+                const conteoProductos = {};
+                pedidosResponse.data.forEach(pedido => {
+                    pedido.productos.forEach(producto => {
+                        if (!conteoProductos[producto._id]) {
+                            conteoProductos[producto._id] = {
+                                ...producto,
+                                cantidadTotal: 0
+                            };
+                        }
+                        conteoProductos[producto._id].cantidadTotal += producto.cantidad;
+                    });
+                });
+
+                // Convertir el objeto a un array y ordenar por cantidad total vendida
+                const productosMasVendidosArray = Object.values(conteoProductos);
+                productosMasVendidosArray.sort((a, b) => b.cantidadTotal - a.cantidadTotal);
+                
+                // Obtener los primeros 4 productos más vendidos
+                setProductosMasVendidos(productosMasVendidosArray.slice(0, 4));
+                setFilteredProducts(productosActivos);
+                
             } catch (error) {
                 setError('Error al obtener los datos');
                 console.error('Error al obtener los datos', error);

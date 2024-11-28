@@ -88,16 +88,20 @@ const GestionProductos = () => {
         setCantidad(producto.cantidad);
         Swal.fire({
             title: `Cambiar stock de ${producto.nombre}`,
-            html: `<input type="number" id="cantidad" class="swal2-input" placeholder="Cantidad"  value="${producto.cantidad}" min="1" >`,
+            html: `<input type="number" id="cantidad" class="swal2-input" placeholder="Cantidad" value="${producto.cantidad}" min="0">`,
             focusConfirm: false,
             preConfirm: () => {
-                const nuevaCantidad = Swal.getPopup().querySelector('#cantidad').value;
-                return nuevaCantidad;
+                const cantidadInput = Swal.getPopup().querySelector('#cantidad').value;
+                if (!cantidadInput || cantidadInput < 0) {
+                    Swal.showValidationMessage('Por favor, ingresa una cantidad válida.');
+                    return false;
+                }
+                return cantidadInput;
             }
         }).then(async (result) => {
-            if (result.value !== undefined) {
-                const nuevaCantidad = result.value;
-                await actualizarStock(producto.id, nuevaCantidad);
+            if (result.isConfirmed && result.value) {
+                const nuevaCantidad = parseInt(result.value, 10);
+                await actualizarStock(producto._id, nuevaCantidad);
             }
         });
     };
@@ -105,7 +109,7 @@ const GestionProductos = () => {
     // Actualiza el stock en la base de datos
     const actualizarStock = async (id, nuevaCantidad) => {
         try {
-            await axios.patch(`http://localhost:5000/productos/${id}`, { cantidad: nuevaCantidad });
+            await axios.put(`http://localhost:5000/productos/stock/${id}`, { cantidad: nuevaCantidad });
             fetchProductos();
             Swal.fire('Actualizado', 'El stock ha sido actualizado exitosamente', 'success');
         } catch (error) {
@@ -179,7 +183,7 @@ const GestionProductos = () => {
                 ) : productosOrdenados.length > 0 ? (
                     productosOrdenados.map((producto) => (
                         <div
-                            key={producto.id}
+                            key={producto._id}
                             className={`border border-gray-200 rounded-lg shadow-md overflow-hidden transition-transform transform hover:scale-105 ${producto.cantidad === 0 ? 'bg-red-100' : 'bg-white'}`}
                         >
                             <div className="w-full h-64 relative">
