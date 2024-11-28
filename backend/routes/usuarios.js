@@ -232,8 +232,13 @@ const encriptarContrasena = (contrasena) => {
 
 // Ruta para actualizar la contraseña del usuario
 // Ruta para actualizar la contraseña
-router.put('/actualizar', async (req, res) => {
+router.put('/act', async (req, res) => {
+    console.log("Ruta /actualizar alcanzada");
+
+
     const { correo, nuevaContrasena } = req.body; // Recibe el correo y la nueva contraseña
+    console.log('Datos recibidos:', { correo, nuevaContrasena });
+
 
     if (!correo || !nuevaContrasena) {
         return res.status(400).json({ message: 'Correo y nueva contraseña son obligatorios' });
