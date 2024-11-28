@@ -33,6 +33,14 @@ app.use('/direcciones', direccionRoutes);
 const ventaRoutes = require('./routes/ventas');
 app.use('/ventas', ventaRoutes);
 
+// Servir archivos estáticos de la carpeta build de React
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Redirigir todas las solicitudes al archivo index.html de React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // Configuración del puerto
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
