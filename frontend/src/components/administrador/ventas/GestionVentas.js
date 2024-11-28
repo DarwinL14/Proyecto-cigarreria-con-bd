@@ -242,7 +242,7 @@ const GestionVentas = () => {
                                                                 {producto.imagen && (
                                                                     <img src={producto.imagen} alt={producto.nombre} className="w-16 h-16 object-cover mr-4" />
                                                                 )}
-                                                                <span>{producto.nombre} - {producto.cantidad} x ${producto.precio}</span>
+                                                                <span>{producto.nombre} - {producto.cantidad} x ${parseFloat(producto.precio).toFixed(3)}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
