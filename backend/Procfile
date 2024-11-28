@@ -1,0 +1,2 @@
+# Inicia el backend
+web: npm install && npm start
