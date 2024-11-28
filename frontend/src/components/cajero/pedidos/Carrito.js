@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2';
+
 
 const Carrito_pedidos_cajero = ({ onClose }) => { // Añadido onClose como prop
     const [carrito, setCarrito] = useState([]);
@@ -16,10 +18,10 @@ const Carrito_pedidos_cajero = ({ onClose }) => { // Añadido onClose como prop
             // Obtener la disponibilidad de productos
             const fetchDisponibilidad = async () => {
                 try {
-                    const response = await axios.get('http://localhost:5000/productos'); // O la URL que devuelva todos los productos
+                    const response = await axios.get('http://localhost:5000/productos/consulta'); // O la URL que devuelva todos los productos
                     const productos = response.data;
                     const disponibilidad = productos.reduce((acc, producto) => {
-                        acc[producto.id] = producto.cantidad;
+                        acc[producto._id] = producto.cantidad;
                         return acc;
                     }, {});
                     setProductosDisponibles(disponibilidad);
@@ -32,32 +34,55 @@ const Carrito_pedidos_cajero = ({ onClose }) => { // Añadido onClose como prop
         }
     }, []);
 
-    const handleEliminar = (id) => {
+    const handleEliminar = (productoId) => {
+        const updatedCarrito = carrito.filter((producto) => producto._id !== productoId); // Usa _id en vez de id
+        setCarrito(updatedCarrito);
         const usuarioId = localStorage.getItem('userId');
         if (usuarioId) {
-            // Filtrar el carrito para eliminar el producto seleccionado
-            const nuevoCarrito = carrito.filter((producto) => producto.id !== id);
-            setCarrito(nuevoCarrito);
-            // Actualizar localStorage con el nuevo carrito
-            localStorage.setItem(`carrito_${usuarioId}`, JSON.stringify(nuevoCarrito));
+            localStorage.setItem(`carrito_${usuarioId}`, JSON.stringify(updatedCarrito));
         }
     };
 
-    const handleCantidadChange = (id, cantidad) => {
-        const usuarioId = localStorage.getItem('userId');
-        if (usuarioId) {
-            const cantidadDisponible = productosDisponibles[id] || 0;
-            // Limitar la cantidad a la disponible
-            const nuevaCantidad = Math.max(1, Math.min(cantidadDisponible, cantidad));
-            // Actualizar la cantidad del producto en el carrito
-            const nuevoCarrito = carrito.map((producto) =>
-                producto.id === id ? { ...producto, cantidad: nuevaCantidad } : producto
+    const handleCantidadChange = (productoId, cantidad) => {
+        const cantidadNumerica = Number(cantidad);
+
+        // Validar que la cantidad sea positiva y un número
+        if (cantidadNumerica <= 0 || isNaN(cantidadNumerica)) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor, ingrese una cantidad válida.',
+                icon: 'error',
+                confirmButtonColor: '#197419',
+            });
+            return;
+        }
+
+        const producto = carrito.find(p => p._id === productoId); // Usa _id en vez de id
+        if (producto) {
+            const cantidadMaxima = productosDisponibles[productoId] || 0;
+
+            if (cantidadNumerica > cantidadMaxima) {
+                Swal.fire({
+                    title: 'Error',
+                    text: `La cantidad máxima disponible es ${cantidadMaxima}.`,
+                    icon: 'error',
+                    confirmButtonColor: '#197419',
+                });
+                return;
+            }
+
+            const updatedCarrito = carrito.map(p =>
+                p._id === productoId ? { ...p, cantidad: cantidadNumerica } : p // Usa _id en vez de id
             );
-            setCarrito(nuevoCarrito);
-            // Actualizar localStorage con el nuevo carrito
-            localStorage.setItem(`carrito_${usuarioId}`, JSON.stringify(nuevoCarrito));
+            setCarrito(updatedCarrito);
+
+            const usuarioId = localStorage.getItem('userId');
+            if (usuarioId) {
+                localStorage.setItem(`carrito_${usuarioId}`, JSON.stringify(updatedCarrito));
+            }
         }
     };
+
 
     const calcularTotal = () => {
         return carrito.reduce((total, producto) => total + parseFloat(producto.precio) * producto.cantidad, 0).toFixed(3);
@@ -89,7 +114,7 @@ const Carrito_pedidos_cajero = ({ onClose }) => { // Añadido onClose como prop
                         </thead>
                         <tbody>
                             {carrito.map((producto) => (
-                                <tr key={producto.id}>
+                                <tr key={producto._id}>
                                     <td className="py-4 px-4 border-b">
                                         <div className="flex items-center">
                                             <img src={producto.imagen} alt={producto.nombre} className="w-20 h-20 object-cover mr-4" />
@@ -101,8 +126,8 @@ const Carrito_pedidos_cajero = ({ onClose }) => { // Añadido onClose como prop
                                             type="number"
                                             value={producto.cantidad}
                                             min="1"
-                                            max={productosDisponibles[producto.id] || 10}
-                                            onChange={(e) => handleCantidadChange(producto.id, parseInt(e.target.value, 10))}
+                                            max={productosDisponibles[producto._id] || 10}
+                                            onChange={(e) => handleCantidadChange(producto._id, parseInt(e.target.value, 10))}
                                             className="w-20 p-2 border border-gray-300 rounded"
                                         />
                                     </td>
@@ -110,7 +135,7 @@ const Carrito_pedidos_cajero = ({ onClose }) => { // Añadido onClose como prop
                                     <td className="py-4 px-4 border-b">${(producto.precio * producto.cantidad).toFixed(3)}</td>
                                     <td className="py-4 px-4 border-b">
                                         <button
-                                            onClick={() => handleEliminar(producto.id)}
+                                            onClick={() => handleEliminar(producto._id)}
                                             className="bg-red-600 text-white py-1 px-2 rounded hover:bg-red-500 transition"
                                         >
                                             Eliminar

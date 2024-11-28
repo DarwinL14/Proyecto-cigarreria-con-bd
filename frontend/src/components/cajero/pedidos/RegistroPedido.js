@@ -30,8 +30,8 @@ const RegistroPedidosCajero = () => {
     useEffect(() => {
         const fetchDatos = async () => {
             try {
-                const productosResponse = await axios.get('http://localhost:5000/productos');
-                const pedidosResponse = await axios.get('http://localhost:5000/pedidos');
+                const productosResponse = await axios.get('http://localhost:5000/productos/consulta');
+                const pedidosResponse = await axios.get('http://localhost:5000/pedidos/consulta');
 
                 const productosActivos = productosResponse.data.filter(producto => producto.estado === 'activo');
                 setProductos(productosActivos);
@@ -40,13 +40,13 @@ const RegistroPedidosCajero = () => {
                 const conteoProductos = {};
                 pedidosResponse.data.forEach(pedido => {
                     pedido.productos.forEach(producto => {
-                        if (!conteoProductos[producto.id]) {
-                            conteoProductos[producto.id] = {
+                        if (!conteoProductos[producto._id]) {
+                            conteoProductos[producto._id] = {
                                 ...producto,
                                 cantidadTotal: 0
                             };
                         }
-                        conteoProductos[producto.id].cantidadTotal += producto.cantidad;
+                        conteoProductos[producto._id].cantidadTotal += producto.cantidad;
                     });
                 });
 
@@ -93,19 +93,19 @@ const RegistroPedidosCajero = () => {
                         productosMasVendidos.map(producto => (
                             <Link
                                 to={`/producto-cajero/${producto.id}`}
-                                key={producto.id}
+                                key={producto._id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
                                 <div className="w-full h-64 relative flex-shrink-0">
                                     <img
                                         src={producto.imagen}
                                         alt={producto.nombre}
-                                        className="object-cover w-full h-full" />
+                                        className="object-contain w-full h-full" />
                                 </div>
                                 <div className="p-4 flex flex-col justify-between h-full">
                                     <div>
                                         <h2 className="text-xl font-semibold mb-2">{producto.nombre}</h2>
-                                        <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
+                                        <p className="text-gray-900 font-bold mb-4">${parseFloat(producto.precio).toFixed(3)}</p>
                                     </div>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -114,7 +114,7 @@ const RegistroPedidosCajero = () => {
                                             console.log('Producto agregado al carrito:', producto);
                                         }}
                                     >
-                                        Agregar al carrito
+                                        Ver más
                                     </button>
                                 </div>
                             </Link>
@@ -154,19 +154,19 @@ const RegistroPedidosCajero = () => {
                     {filteredProducts.length > 0 ? (
                         filteredProducts.map(producto => (
                             <Link
-                                to={`/producto-cajero/${producto.id}`}
-                                key={producto.id}
+                                to={`/producto-cajero/${producto._id}`}
+                                key={producto._id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105"
                             >
                                 <div className="w-full h-64 relative">
                                     <img
                                         src={producto.imagen}
                                         alt={producto.nombre}
-                                        className="object-cover w-full h-full absolute inset-0" />
+                                        className="object-contain w-full h-full absolute inset-0" />
                                 </div>
                                 <div className="p-4">
                                     <h2 className="text-xl font-semibold mb-2">{producto.nombre}</h2>
-                                    <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
+                                    <p className="text-gray-900 font-bold mb-4">${parseFloat(producto.precio).toFixed(3)}</p>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-auto"
                                     >

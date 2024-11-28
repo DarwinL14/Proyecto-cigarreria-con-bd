@@ -40,7 +40,7 @@ const DatosEntregaCajero = () => {
     const enviarCorreoCajeros = async (pedido) => {
         try {
             // Obtener los correos y nombres de los cajeros
-            const { data: cajeros } = await axios.get('http://localhost:5000/usuarios?rol=cajero');
+            const { data: cajeros } = await axios.get('http://localhost:5000/usuarios/cajeros');
             
             // Enviar el correo a cada cajero
             await Promise.all(cajeros.map(cajero => {
@@ -61,7 +61,8 @@ const DatosEntregaCajero = () => {
         }
     };
 
-    const handleConfirmar = async () => {
+    const handleConfirmar = async () => {       
+    
         if (!direccion.trim() || !nombre.trim() || !correo.trim() || !telefono.trim()) {
             setError('Por favor, completa todos los campos.');
             return;
@@ -75,33 +76,35 @@ const DatosEntregaCajero = () => {
                 nombre,
                 correo,
                 telefono,
-                productos: carrito,
+                productos: carrito.map(producto => ({
+                    id: producto._id,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    descripcion: producto.descripcion,
+                    imagen: producto.imagen,
+                    categoria: producto.categoria,
+                    cantidad: producto.cantidad,
+                    marca: producto.marca,
+                    estado: producto.estado || 'activo',
+                })),
                 fecha: new Date().toISOString(),
                 estadoPedido: 'pendiente',
                 estado: 'activo',
                 metodoPago: 'efectivo',
-            };
-
+            };                
+               
             try {
                 const response = await axios.post('http://localhost:5000/pedidos', pedido);
 
-                await Promise.all(carrito.map(async (producto) => {
-                    const { data: productoActual } = await axios.get(`http://localhost:5000/productos/${producto.id}`);
-                    const productoActualizado = {
-                        ...productoActual,
-                        cantidad: productoActual.cantidad - producto.cantidad,
-                    };
-                    await axios.put(`http://localhost:5000/productos/${producto.id}`, productoActualizado);
-                }));
-
-                // Enviar correos a los cajeros
                 await enviarCorreoCajeros(pedido);
-
+    
+                // Limpiar el carrito y la dirección de entrega del localStorage
                 localStorage.removeItem(`carrito_${usuarioId}`);
                 localStorage.removeItem('datosCarrito');
                 localStorage.removeItem('direccionEntrega');
-
-                navigate('/ConfirmacionCajero', { state: { pedidoId: response.data.id } });
+    
+                // Redirigir al usuario a la página de confirmación
+                navigate('/ConfirmacionCajero', { state: { pedidoId: response.data._id } });
             } catch (error) {
                 console.error('Error al crear el pedido:', error);
                 setError('Hubo un problema al procesar tu pedido.');
@@ -134,7 +137,7 @@ const DatosEntregaCajero = () => {
                         </thead>
                         <tbody>
                             {carrito.map((producto) => (
-                                <tr key={producto.id}>
+                                <tr key={producto._id}>
                                     <td className="py-4 px-4 border-b">
                                         <div className="flex items-center">
                                             <img src={producto.imagen} alt={producto.nombre} className="w-20 h-20 object-cover mr-4" />

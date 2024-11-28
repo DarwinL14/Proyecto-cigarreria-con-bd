@@ -15,7 +15,7 @@ const ConfirmacionCajero = () => {
     useEffect(() => {
         if (pedidoId) {
             // Hacer la solicitud a la API para obtener los detalles del pedido
-            axios.get(`http://localhost:5000/pedidos/${pedidoId}`)
+            axios.get(`http://localhost:5000/pedidos/pedidos/confirmar/${pedidoId}`)
                 .then((response) => {
                     setPedidoData(response.data);
                     setLoading(false);
@@ -92,7 +92,7 @@ const ConfirmacionCajero = () => {
                                         </div>
                                     </td>
                                     <td className="py-4 px-4 border-b">{producto.cantidad}</td>
-                                    <td className="py-4 px-4 border-b">${producto.precio}</td>
+                                    <td className="py-4 px-4 border-b">${parseFloat(producto.precio).toFixed(3)}</td>
                                     <td className="py-4 px-4 border-b">${(producto.precio * producto.cantidad).toFixed(3)}</td>
                                 </tr>
                             ))}

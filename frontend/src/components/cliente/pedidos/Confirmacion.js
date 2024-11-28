@@ -93,7 +93,7 @@ const Confirmacion = () => {
                                         </div>
                                     </td>
                                     <td className="py-4 px-4 border-b">{producto.cantidad}</td>
-                                    <td className="py-4 px-4 border-b">${producto.precio}</td>
+                                    <td className="py-4 px-4 border-b">${parseFloat(producto.precio).toFixed(3)}</td>
                                     <td className="py-4 px-4 border-b">${(producto.precio * producto.cantidad).toFixed(3)}</td>
                                 </tr>
                             ))}

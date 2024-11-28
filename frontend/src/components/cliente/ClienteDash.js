@@ -107,7 +107,7 @@ const ClienteDashboard = () => {
                     {productosMasVendidos.length > 0 ? (
                         productosMasVendidos.map(producto => (
                             <Link
-                                to={`/productos/${producto._id}`}
+                                to={`/productos/${producto.id}`}
                                 key={producto.id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >

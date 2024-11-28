@@ -106,7 +106,7 @@ const Inicio = () => {
                     {productosMasVendidos.length > 0 ? (
                         productosMasVendidos.map(producto => (
                             <div
-                                key={producto._id}
+                                key={producto.id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
                                 <div className="w-full h-48 relative flex-shrink-0">
@@ -123,7 +123,7 @@ const Inicio = () => {
                                     </div>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        onClick={() => handleDetallesProductoSinLoggear(producto._id)}
+                                        onClick={() => handleDetallesProductoSinLoggear(producto.id)}
                                     >
                                         Ver más
                                     </button>

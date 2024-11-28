@@ -16,7 +16,7 @@ const DetalleProductoCajero = () => {
     useEffect(() => {
         const fetchProducto = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/productos/${id}`);
+                const response = await axios.get(`http://localhost:5000/productos/consulta/${id}`);
                 setProducto(response.data);
                 setPrecioTotal(response.data.precio); // Inicializa el precio total
             } catch (error) {
@@ -56,7 +56,7 @@ const DetalleProductoCajero = () => {
         const carrito = JSON.parse(localStorage.getItem(`carrito_${usuarioId}`)) || [];
         
         // Verificar si el producto ya está en el carrito
-        const productoExistente = carrito.find(p => p.id === producto.id);
+        const productoExistente = carrito.find(p => p._id === producto._id);
         if (productoExistente) {
             alert('Este producto ya está en el carrito.');
             return;
