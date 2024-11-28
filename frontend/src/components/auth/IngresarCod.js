@@ -95,8 +95,8 @@ const VerificarCodigo = () => {
     
         try {
             // Realizamos la solicitud PUT sin guardar la respuesta
-            await axios.put('http://localhost:5000/usuarios/actualizar', {
-                correo: correo,  // Asegúrate de que el correo esté disponible
+            await axios.put('http://localhost:5000/usuarios/act', {
+                correo,  // Asegúrate de que el correo esté disponible
                 nuevaContrasena: newPassword, // Enviar la contraseña sin encriptar
             });
     
@@ -108,6 +108,8 @@ const VerificarCodigo = () => {
             });
             navigate('/login');  // Redirige al login
         } catch (error) {
+
+            console.log(error); // Imprime todo el error para depurar
             // Si ocurrió un error
             Swal.fire({
                 icon: 'error',
