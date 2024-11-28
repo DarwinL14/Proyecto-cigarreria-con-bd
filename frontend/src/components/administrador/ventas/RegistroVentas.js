@@ -113,7 +113,7 @@ const RegistroVentas = () => {
     const handleQuantityChange = (productoId, cantidad) => {
         const cantidadNumerica = Number(cantidad);
 
-         // Validar que la cantidad sea positiva y un número
+        // Validar que la cantidad sea positiva y un número
         if (cantidadNumerica <= 0 || isNaN(cantidadNumerica)) {
             Swal.fire({
                 title: 'Error',
@@ -182,7 +182,7 @@ const RegistroVentas = () => {
             {/* Icono del carrito en la esquina superior derecha */}
             <div
                 onClick={() => setCarritoVisible(!carritoVisible)}
-                className="fixed top-4 right-4 bg-green-600 text-white p-3 rounded-full cursor-pointer shadow-lg hover:bg-green-700"
+                className="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-full cursor-pointer shadow-lg hover:bg-green-700"
             >
                 <FaShoppingCart size={24} />
             </div>
@@ -202,7 +202,7 @@ const RegistroVentas = () => {
                                                 <img
                                                     src={producto.imagen}
                                                     alt={producto.nombre}
-                                                    className="object-cover w-full h-full rounded"
+                                                    className="object-contain w-full h-full rounded"
                                                 />
                                             </div>
                                             <div className="flex-1">
@@ -293,7 +293,7 @@ const RegistroVentas = () => {
                                 <img
                                     src={producto.imagen}
                                     alt={producto.nombre}
-                                    className={`object-cover w-full h-full absolute inset-0 ${producto.cantidad === 0 ? 'filter grayscale' : ''}`}
+                                    className={`object-contain w-full h-full absolute inset-0 ${producto.cantidad === 0 ? 'filter grayscale' : ''}`}
                                 />
                                 {producto.cantidad === 0 && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-50">

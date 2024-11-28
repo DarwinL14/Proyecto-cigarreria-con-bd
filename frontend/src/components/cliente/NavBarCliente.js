@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import UserContext from '../../context/UserContext';
@@ -10,6 +10,15 @@ const HeaderCliente = () => {
     const location = useLocation(); // Hook para obtener la ubicación actual
     const [isOpen, setIsOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [userName, setUserName] = useState(''); // Estado para almacenar el nombre del usuario
+
+    // Obtener el nombre del usuario desde localStorage
+    useEffect(() => {
+        const storedName = localStorage.getItem('name');
+        if (storedName) {
+            setUserName(storedName);
+        }
+    }, []);
 
     const handleLogout = () => {
         logout();
@@ -32,6 +41,7 @@ const HeaderCliente = () => {
                     </Link>
 
                     <div className="flex items-center lg:order-2 space-x-2">
+                    {userName && <p className="text-gray-900">{userName}</p>}
                         <div className="relative">
                             <button onClick={toggleUserMenu} className="text-gray-900">
                                 <FaUserCircle className="w-6 h-6" />

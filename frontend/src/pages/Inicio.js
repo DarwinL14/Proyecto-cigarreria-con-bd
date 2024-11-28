@@ -88,9 +88,9 @@ const Inicio = () => {
     return (
         <>
             <div className="bg-black text-white pb-5">
-                <img 
-                    src={fuera_1} 
-                    alt="Fondo" 
+                <img
+                    src={fuera_1}
+                    alt="Fondo"
                     className="w-full h-96 object-cover filter imagen brightness-50"
                 />
                 <div className="container mx-auto text-center">
@@ -109,11 +109,12 @@ const Inicio = () => {
                                 key={producto._id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
-                                <div className="w-full h-64 relative flex-shrink-0">
+                                <div className="w-full h-48 relative flex-shrink-0">
                                     <img
                                         src={producto.imagen}
                                         alt={producto.nombre}
-                                        className="object-cover w-full h-full" />
+                                        className="object-contain w-full h-full" // Usa object-contain para que la imagen no se corte
+                                    />
                                 </div>
                                 <div className="p-4 flex flex-col justify-between h-full">
                                     <div>
@@ -128,6 +129,8 @@ const Inicio = () => {
                                     </button>
                                 </div>
                             </div>
+
+
                         ))
                     ) : (
                         <p className="text-gray-500 text-center">No hay productos más vendidos disponibles.</p>
@@ -165,17 +168,20 @@ const Inicio = () => {
                         filteredProducts.map(producto => (
                             <div
                                 key={producto._id}
-                                className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105"
+                                className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
-                                <div className="w-full h-64 relative">
+                                <div className="w-full h-48 relative flex-shrink-0">
                                     <img
                                         src={producto.imagen}
                                         alt={producto.nombre}
-                                        className="object-cover w-full h-full absolute inset-0" />
+                                        className="object-contain w-full h-full" // Usa object-contain para que la imagen no se corte
+                                    />
                                 </div>
-                                <div className="p-4">
-                                    <h2 className="text-xl font-semibold mb-2">{producto.nombre}</h2>
-                                    <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
+                                <div className="p-4 flex flex-col justify-between h-full">
+                                    <div>
+                                        <h2 className="text-xl font-semibold mb-2">{producto.nombre}</h2>
+                                        <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
+                                    </div>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                                         onClick={() => handleDetallesProductoSinLoggear(producto._id)}
@@ -184,6 +190,7 @@ const Inicio = () => {
                                     </button>
                                 </div>
                             </div>
+
                         ))
                     ) : (
                         <p className="text-gray-500 text-center">No hay productos disponibles en esta categoría.</p>

@@ -89,7 +89,7 @@ const DetalleProducto = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mt-12 mx-6 px-4 py-8">
             <div className="flex flex-col md:flex-row justify-center">
                 <div className="relative md:w-1/3">
                     <img

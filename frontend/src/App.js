@@ -84,7 +84,7 @@ const App = () => {
     return (
       <div className="flex flex-col min-h-screen">
         {showNavBarFooter && <NavBarComponent />}
-        <main className="flex-grow">
+        <main className="flex-grow mt-12">
           <Routes>
             <Route path="/" element={<Inicio />} />
             <Route path="/Inicio" element={<Inicio />} />

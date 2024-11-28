@@ -109,7 +109,7 @@ const GestionProductos = () => {
                                 <img
                                     src={producto.imagen}
                                     alt={producto.nombre}
-                                    className={`object-cover w-full h-full absolute inset-0 ${producto.cantidad === 0 ? 'filter grayscale' : ''}`}
+                                    className={`object-contain w-full h-full absolute inset-0 ${producto.cantidad === 0 ? 'filter grayscale' : ''}`}
                                 />
                                 {producto.cantidad === 0 && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-50">

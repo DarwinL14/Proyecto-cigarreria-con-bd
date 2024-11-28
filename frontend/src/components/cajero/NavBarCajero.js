@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom"; // Importa useLocation
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import UserContext from '../../context/UserContext';
@@ -10,6 +10,15 @@ const HeaderCajero = () => {
     const location = useLocation(); // Usa useLocation para obtener la ruta actual
     const [isOpen, setIsOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [userName, setUserName] = useState(''); // Estado para almacenar el nombre del usuario
+
+    // Obtener el nombre del usuario desde localStorage
+    useEffect(() => {
+        const storedName = localStorage.getItem('name');
+        if (storedName) {
+            setUserName(storedName);
+        }
+    }, []);
 
     const handleLogout = () => {
         logout();
@@ -38,6 +47,7 @@ const HeaderCajero = () => {
                         <img src={Logo} alt="Logo" className="w-56 h-auto" />
                     </Link>
                     <div className="flex items-center lg:order-2 space-x-2 relative">
+                    {userName && <p className="text-gray-900">{userName}</p>}
                         {/* Menú desplegable de usuario */}
                         <div className="relative">
                             <button onClick={toggleUserMenu} className="text-gray-900 focus:outline-none">

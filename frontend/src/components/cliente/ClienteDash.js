@@ -112,15 +112,15 @@ const ClienteDashboard = () => {
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden flex flex-col"
                             >
                                 <div className="w-full h-64 relative flex-shrink-0">
-                                    <img
-                                        src={producto.imagen}
-                                        alt={producto.nombre}
-                                        className="object-cover w-full h-full" />
+                                <img src={producto.imagen} alt={producto.nombre} className="object-contain w-full h-64" />
+
+
+
                                 </div>
                                 <div className="p-4 flex flex-col justify-between h-full">
                                     <div>
                                         <h2 className="text-xl font-semibold mb-2">{producto.nombre}</h2>
-                                        <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
+                                        <p className="text-gray-900 font-bold mb-4">${parseFloat(producto.precio).toFixed(3)}</p>
                                     </div>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -174,14 +174,13 @@ const ClienteDashboard = () => {
                                 className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transform transition-transform duration-300 hover:scale-105"
                             >
                                 <div className="w-full h-64 relative">
-                                    <img
-                                        src={producto.imagen}
-                                        alt={producto.nombre}
-                                        className="object-cover w-full h-full absolute inset-0" />
+                                <img src={producto.imagen} alt={producto.nombre} className="object-contain w-full h-64" />
+
+
                                 </div>
                                 <div className="p-4">
                                     <h2 className="text-xl font-semibold mb-2">{producto.nombre}</h2>
-                                    <p className="text-gray-900 font-bold mb-4">${producto.precio}</p>
+                                    <p className="text-gray-900 font-bold mb-4">${parseFloat(producto.precio).toFixed(3)}</p>
                                     <button
                                         className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-auto"
                                     >
