@@ -24,7 +24,7 @@ const HeaderCliente = () => {
     const isActiveLink = (path) => location.pathname === path;
 
     return (
-        <header>
+        <header className="fixed top-0 left-0 w-full bg-gray-300 border-b border-gray-300 shadow-md z-50">
             <nav className="bg-gray-300 border-b border-gray-300 px-4 py-3 rounded-b-lg shadow-md relative">
                 <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
                     <Link to="/cliente-dash" className="flex items-center space-x-3">

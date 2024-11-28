@@ -84,7 +84,7 @@ const DetalleProductoSinLoggear = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mt-12 mx-8 px-4 py-8">
             <div className="flex flex-col md:flex-row justify-center">
                 <div className="relative md:w-1/3">
                     {/* Imagen del producto con filtro si está agotado */}
